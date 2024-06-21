@@ -27,3 +27,6 @@ app.use(express.urlencoded({ extended: true }));
 
 const usersRouter = require("./routers/usersRouter");
 app.use("/auth", usersRouter);
+
+const refreshRouter = require("./routers/refreshRouter");
+app.use("/refresh", refreshRouter);
