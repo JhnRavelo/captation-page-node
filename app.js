@@ -7,7 +7,7 @@ require("dotenv").config();
 const app = express();
 
 db.sequelize.options.logging = false;
-db.sequelize.sync().then(() => {
+db.sequelize.sync({ alter: true }).then(() => {
   app.listen(process.env.SERVER_PORT, async () => {
     console.log(`http://localhost:${process.env.SERVER_PORT}`);
   });
@@ -25,4 +25,5 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 
-
+const usersRouter = require("./routers/usersRouter");
+app.use("/auth", usersRouter);
