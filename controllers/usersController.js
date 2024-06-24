@@ -58,4 +58,37 @@ const userLogin = async (req, res) => {
   }
 };
 
-module.exports = { userLogin };
+const userLogout = async (req, res) => {
+  const cookie = req.cookies;
+  try {
+    if (!cookie?.link_generator_token) return res.json({ success: false });
+    const refreshToken = cookie.link_generator_token;
+    const user = await users.findOne({
+      where: {
+        refreshToken: refreshToken,
+      },
+    });
+
+    if (!user) {
+      res.clearCookie("link_generator_token", {
+        httpOnly: true,
+        sameSite: "None",
+        secure: true,
+      });
+      return res.json({ success: false });
+    }
+    user.refreshToken = "";
+    await user.save();
+    res.clearCookie("link_generator_token", {
+      httpOnly: true,
+      sameSite: "None",
+      secure: true,
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.json({ success: false });
+    console.log("ERROR LOGOUT WEB", error);
+  }
+};
+
+module.exports = { userLogin, userLogout };
