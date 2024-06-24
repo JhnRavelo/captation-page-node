@@ -33,7 +33,6 @@ const handleRefreshToken = async (req, res) => {
                 id: decoded.id,
               },
             });
-
             hackedUser.refreshToken = "";
             await hackedUser.save();
           }
@@ -46,7 +45,6 @@ const handleRefreshToken = async (req, res) => {
       refreshToken,
       process.env.REFRESH_TOKEN,
       async (err, decoded) => {
-        
         if (err) {
           user.refreshToken = "";
           await user.save();
@@ -54,9 +52,8 @@ const handleRefreshToken = async (req, res) => {
 
         if (err || user.id !== decoded?.id) return res.sendStatus(403);
         const id = user.id,
-          role = user.role,
           newRefreshToken = users.prototype.generateRefreshToken(id),
-          accessToken = users.prototype.generateToken(id, role);
+          accessToken = users.prototype.generateToken(id);
         user.refreshToken = newRefreshToken;
         await user.save();
         res.cookie("link_generator_token", newRefreshToken, {
@@ -68,11 +65,11 @@ const handleRefreshToken = async (req, res) => {
         res.json({
           success: true,
           user: {
-            role,
-            accessToken,
+            id: user.id,
             name: user.name,
             email: user.email,
             avatar: user.avatar,
+            accessToken,
           },
         });
       }
