@@ -1,6 +1,10 @@
 const bcrypt = require("bcrypt");
 const { users } = require("../database/models");
 const { Op } = require("sequelize");
+const FileHandler = require("../class/FileHandler");
+const path = require("path");
+
+const avatarPath = path.join(__dirname, "..", "public", "avatar");
 
 const userLogin = async (req, res) => {
   try {
@@ -51,6 +55,7 @@ const userLogin = async (req, res) => {
         accessToken,
       },
       success: true,
+      message: "Connexion Réussie",
     });
   } catch (error) {
     res.json({ success: false, message: "Erreur du serveur" });
@@ -124,6 +129,7 @@ const userEditProfile = async (req, res) => {
         avatar: isUser.avatar,
         accessToken,
       },
+      message: "Profile Modifier",
     });
   } catch (error) {
     res.json({ success: false, message: "Erreur du serveur" });
@@ -131,4 +137,47 @@ const userEditProfile = async (req, res) => {
   }
 };
 
-module.exports = { userLogin, userLogout, userEditProfile };
+const userEditAvatar = async (req, res) => {
+  try {
+    if (
+      !req.files &&
+      req.files[0].mimetype.split("/")[0] !== "image" &&
+      !req.user
+    )
+      return res.json({ success: false, message: "Image non trouvé" });
+    const isUser = await users.findOne({ where: { id: req.user } });
+
+    if (!isUser)
+      return res.json({ success: false, message: "Utilisateur non trouvé" });
+    const fileHandler = new FileHandler();
+
+    if (isUser.avatar)
+      fileHandler.deleteFileFromDatabase(isUser.avatar, avatarPath, "avatar");
+    const filePath = await fileHandler.createImage(req, avatarPath);
+    isUser.avatar = filePath;
+    const result = await isUser.save();
+
+    if (!result)
+      return res.json({
+        success: false,
+        message: "Image de Profile Non Modifier",
+      });
+    const accessToken = users.prototype.generateToken(isUser.id);
+    res.json({
+      success: true,
+      user: {
+        id: isUser.id,
+        name: isUser.name,
+        email: isUser.email,
+        avatar: isUser.avatar,
+        accessToken,
+      },
+      message: "Image de Profile Modifier",
+    });
+  } catch (error) {
+    res.json({ success: false, message: "Erreur serveur" });
+    console.log("ERROR USER EDIT AVATAR", error);
+  }
+};
+
+module.exports = { userLogin, userLogout, userEditProfile, userEditAvatar };
