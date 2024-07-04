@@ -54,7 +54,7 @@ const userLogin = async (req, res) => {
     });
   } catch (error) {
     res.json({ success: false, message: "Erreur du serveur" });
-    console.log("USER LOGIN ERROR", error);
+    console.log("ERROR USER LOGIN", error);
   }
 };
 
@@ -91,4 +91,44 @@ const userLogout = async (req, res) => {
   }
 };
 
-module.exports = { userLogin, userLogout };
+const userEditProfile = async (req, res) => {
+  try {
+    const { name, password } = await req.body;
+
+    if (!name || !req.user)
+      return res.json({
+        success: false,
+        message: "Aucun données n'a été envoyer",
+      });
+    const isUser = await users.findOne({ where: { id: req.user } });
+
+    if (!isUser)
+      return res.json({ success: false, message: "Utilisateur non trouvé" });
+    isUser.name = name;
+
+    if (password) isUser.password = await bcrypt.hash(password, 10);
+    const result = await isUser.save();
+
+    if (!result)
+      return res.json({
+        success: false,
+        message: "Utilisateur non mise à jour",
+      });
+    const accessToken = users.prototype.generateToken(isUser.id);
+    res.json({
+      success: true,
+      user: {
+        id: isUser.id,
+        name: isUser.name,
+        email: isUser.email,
+        avatar: isUser.avatar,
+        accessToken,
+      },
+    });
+  } catch (error) {
+    res.json({ success: false, message: "Erreur du serveur" });
+    console.log("ERROR USER EDIT PROFILE", error);
+  }
+};
+
+module.exports = { userLogin, userLogout, userEditProfile };
