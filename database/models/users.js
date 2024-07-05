@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 module.exports = (sequelize, DataTypes) => {
-    
   const users = sequelize.define("users", {
     id: {
       primaryKey: true,
@@ -58,6 +57,10 @@ module.exports = (sequelize, DataTypes) => {
     );
 
     return refreshToken;
+  };
+
+  users.associate = (models) => {
+    users.hasMany(models.campagnes, { foreignKey: "userId" });
   };
 
   return users;

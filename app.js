@@ -7,7 +7,7 @@ require("dotenv").config();
 const app = express();
 
 db.sequelize.options.logging = false;
-db.sequelize.sync({ alter: true }).then(() => {
+db.sequelize.sync().then(() => {
   app.listen(process.env.SERVER_PORT, async () => {
     console.log(`http://localhost:${process.env.SERVER_PORT}`);
   });
@@ -30,3 +30,6 @@ app.use("/auth", usersRouter);
 
 const refreshRouter = require("./routers/refreshRouter");
 app.use("/refresh", refreshRouter);
+
+const campagnesRouter = require("./routers/campagnesRouter");
+app.use("/campagne", campagnesRouter);
