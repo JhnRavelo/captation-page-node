@@ -1,5 +1,5 @@
 const { campagnes, users } = require("../database/models");
-const Sequelize = require('sequelize');
+const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const getAllCampagnes = require("../utils/getAllCampagnes");
 
@@ -12,12 +12,12 @@ const campagneAdd = async (req, res) => {
       return res.json({ success: false, message: "Données non envoyé" });
     const nameTitle = title.trim().slice(0, 8).toUpperCase();
     const isCampagnes = await campagnes.findAll({
-        where: {
-          id: {
-            [Op.like]: `%${nameTitle}%`,
-          },
+      where: {
+        id: {
+          [Op.like]: `%${nameTitle}%`,
         },
-      });
+      },
+    });
 
     if (isCampagnes) {
       id = nameTitle + (isCampagnes.length + 1);
@@ -46,4 +46,19 @@ const campagneAdd = async (req, res) => {
   }
 };
 
-module.exports = { campagneAdd };
+const campagneGetAll = async (req, res) => {
+  try {
+    const datas = await getAllCampagnes(campagnes, users);
+
+    if (!datas)
+      return res.json({
+        success: false,
+        message: "Erreur recuperation des données campagnes",
+      });
+    res.json({ success: true, datas });
+  } catch (error) {
+    console.log("ERROR CAMPAGNE GET ALL", error);
+  }
+};
+
+module.exports = { campagneAdd, campagneGetAll };
