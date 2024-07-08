@@ -4,9 +4,13 @@ const verifyJWT = require("../middlewares/verifyJWT");
 const {
   campagneAdd,
   campagneGetAll,
+  campagneUpdate,
 } = require("../controllers/campagnesController");
 
-router.post("/", verifyJWT, campagneAdd);
-router.get("/", verifyJWT, campagneGetAll);
+router
+  .route("/")
+  .post(verifyJWT, campagneAdd)
+  .get(verifyJWT, campagneGetAll)
+  .put(verifyJWT, campagneUpdate);
 
 module.exports = router;

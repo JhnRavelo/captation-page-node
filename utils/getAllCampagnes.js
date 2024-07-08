@@ -1,4 +1,6 @@
-module.exports = async (campagnes, users) => {
+const {campagnes, users} = require("../database/models");
+
+module.exports = async () => {
   const allCampagnes = await campagnes.findAll({
     include: [{ model: users }],
     order: [["createdAt", "DESC"]],

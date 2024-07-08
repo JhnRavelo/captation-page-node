@@ -8,7 +8,7 @@ const campagneAdd = async (req, res) => {
     let id;
     const { title, description, dateDebut, dateFin, entreprise } =
       await req.body;
-    if (!title && !description && !dateDebut && !dateFin && !entreprise)
+    if (!title || !description || !dateDebut || !dateFin || !entreprise)
       return res.json({ success: false, message: "Données non envoyé" });
     const nameTitle = title.trim().slice(0, 8).toUpperCase();
     const isCampagnes = await campagnes.findAll({
@@ -34,7 +34,7 @@ const campagneAdd = async (req, res) => {
 
     if (!newCampagne)
       return res.json({ success: false, message: "Campagne non ajouté" });
-    const datas = await getAllCampagnes(campagnes, users);
+    const datas = await getAllCampagnes();
     res.json({
       datas,
       message: "Campagne ajouté",
@@ -48,7 +48,7 @@ const campagneAdd = async (req, res) => {
 
 const campagneGetAll = async (req, res) => {
   try {
-    const datas = await getAllCampagnes(campagnes, users);
+    const datas = await getAllCampagnes();
 
     if (!datas)
       return res.json({
@@ -61,4 +61,28 @@ const campagneGetAll = async (req, res) => {
   }
 };
 
-module.exports = { campagneAdd, campagneGetAll };
+const campagneUpdate = async (req, res) => {
+  try {
+    const { id, title, description, dateDebut, dateFin, entreprise } =
+      await req.body;
+
+    if (!title || !description || !dateDebut || !dateFin || !id || !entreprise)
+      return res.json({ success: false, message: "Données non envoyé" });
+    const isCampagne = await campagnes.findOne({ where: { id: id } });
+
+    if (!isCampagne)
+      return res.json({ success: false, message: "Campagne non trouvé" });
+    isCampagne.set({ title, description, dateDebut, dateFin, entreprise });
+    const result = await isCampagne.save();
+
+    if (!result)
+      return res.json({ success: false, message: "Campagne non modifié" });
+    const datas = await getAllCampagnes();
+    res.json({ datas, message: "Campagne modifié", success: true });
+  } catch (error) {
+    res.json({ success: false, message: "Erreur serveur" });
+    console.log("ERROR UPDATE CAMPAGNE", error);
+  }
+};
+
+module.exports = { campagneAdd, campagneGetAll, campagneUpdate };
