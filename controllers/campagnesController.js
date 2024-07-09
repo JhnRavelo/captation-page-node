@@ -1,4 +1,4 @@
-const { campagnes, users } = require("../database/models");
+const { campagnes, entreprises } = require("../database/models");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const getAllCampagnes = require("../utils/getAllCampagnes");
@@ -8,8 +8,15 @@ const campagneAdd = async (req, res) => {
     let id;
     const { title, description, dateDebut, dateFin, entreprise } =
       await req.body;
+
     if (!title || !description || !dateDebut || !dateFin || !entreprise)
       return res.json({ success: false, message: "Données non envoyé" });
+    const isEntreprise = await entreprises.findOne({
+      where: { entreprise: entreprise },
+    });
+
+    if (!isEntreprise)
+      return res.json({ success: false, message: "Entreprise non trouvé" });
     const nameTitle = title.trim().slice(0, 8).toUpperCase();
     const isCampagnes = await campagnes.findAll({
       where: {
@@ -28,8 +35,8 @@ const campagneAdd = async (req, res) => {
       description,
       dateDebut,
       dateFin,
-      entreprise,
       userId: req.user,
+      entrepriseId: isEntreprise.id,
     });
 
     if (!newCampagne)
@@ -80,11 +87,23 @@ const campagneUpdate = async (req, res) => {
 
     if (!title || !description || !dateDebut || !dateFin || !id || !entreprise)
       return res.json({ success: false, message: "Données non envoyé" });
+    const isEntreprise = await entreprises.findOne({
+      where: { entreprise: entreprise },
+    });
+
+    if (!isEntreprise)
+      return res.json({ success: false, message: "Entreprise non trouvé" });
     const isCampagne = await campagnes.findOne({ where: { id: id } });
 
     if (!isCampagne)
       return res.json({ success: false, message: "Campagne non trouvé" });
-    isCampagne.set({ title, description, dateDebut, dateFin, entreprise });
+    isCampagne.set({
+      title,
+      description,
+      dateDebut,
+      dateFin,
+      entrepriseId: isEntreprise.id,
+    });
     const result = await isCampagne.save();
 
     if (!result)

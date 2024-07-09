@@ -1,8 +1,8 @@
-const { campagnes, users } = require("../database/models");
+const { campagnes, users, entreprises } = require("../database/models");
 
 module.exports = async () => {
   const allCampagnes = await campagnes.findAll({
-    include: [{ model: users }],
+    include: [{ model: users }, { model: entreprises }],
     order: [["createdAt", "DESC"]],
   });
 
@@ -13,11 +13,12 @@ module.exports = async () => {
       description: value.description,
       title: value.title,
       id: value.id,
-      entreprise: value.entreprise,
+      entreprise: value.entreprise.entreprise,
       dateDebut: value.dateDebut,
       dateFin: value.dateFin,
       mailText: value.mailText,
       object: value.object,
+      logo: value.entreprise.logo ? value.entreprise.logo : "",
     };
   });
 

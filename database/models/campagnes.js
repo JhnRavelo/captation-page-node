@@ -21,10 +21,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    entreprise: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     mailText: {
       type: DataTypes.TEXT,
       allowNull: true,
@@ -39,6 +35,10 @@ module.exports = (sequelize, DataTypes) => {
     campagnes.belongsTo(models.users, {
       foreignKey: "userId",
     });
+    campagnes.belongsTo(models.entreprises, {
+      foreignKey: "entrepriseId",
+    });
+    campagnes.hasOne(models.qrcodes, { foreignKey: "campagneId" });
   };
 
   return campagnes;
