@@ -55,8 +55,20 @@ const campagneGetAll = async (req, res) => {
         success: false,
         message: "Erreur recuperation des données campagnes",
       });
-    res.json({ success: true, datas });
+    let years = [];
+    const resultYear = datas.map((item) => {
+      const itemYear = item.dateDebut.split("-")[0];
+      if (!years.includes(itemYear)) {
+        years.push(itemYear);
+      }
+    });
+    await Promise.all(resultYear);
+    res.json({ success: true, datas, years });
   } catch (error) {
+    res.json({
+      success: false,
+      message: "Erreur recuperation des données campagnes",
+    });
     console.log("ERROR CAMPAGNE GET ALL", error);
   }
 };
