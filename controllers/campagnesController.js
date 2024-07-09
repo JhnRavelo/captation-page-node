@@ -85,4 +85,35 @@ const campagneUpdate = async (req, res) => {
   }
 };
 
-module.exports = { campagneAdd, campagneGetAll, campagneUpdate };
+const campagneUpdateMail = async (req, res) => {
+  try {
+    const { mailText, object, id } = await req.body;
+
+    if (!mailText || !object)
+      return res.json({ success: false, message: "Contenu mail non envoyé" });
+    const isCampagne = await campagnes.findOne({ where: { id: id } });
+
+    if (!isCampagne)
+      return res.json({ success: false, message: "Campagne non trouvé" });
+    isCampagne.set({ mailText, object });
+    const result = await isCampagne.save();
+
+    if (!result)
+      return res.json({
+        success: false,
+        message: "Campagne email non modifié",
+      });
+    const datas = await getAllCampagnes();
+    res.json({ datas, message: "Campagne email modifié", success: true });
+  } catch (error) {
+    res.json({ success: false, message: "Erreur serveur" });
+    console.log("ERROR UPDATE MAIL", error);
+  }
+};
+
+module.exports = {
+  campagneAdd,
+  campagneGetAll,
+  campagneUpdate,
+  campagneUpdateMail,
+};

@@ -1,4 +1,4 @@
-const {campagnes, users} = require("../database/models");
+const { campagnes, users } = require("../database/models");
 
 module.exports = async () => {
   const allCampagnes = await campagnes.findAll({
@@ -9,15 +9,17 @@ module.exports = async () => {
   const datas = allCampagnes.map((campagne) => {
     const value = campagne.dataValues;
     return {
-        user: value.user.name,
-        description: value.description,
-        title: value.title,
-        id: value.id,
-        entreprise: value.entreprise,
-        dateDebut: value.dateDebut,
-        dateFin: value.dateFin
-    }
-  })
+      user: value.user.name,
+      description: value.description,
+      title: value.title,
+      id: value.id,
+      entreprise: value.entreprise,
+      dateDebut: value.dateDebut,
+      dateFin: value.dateFin,
+      mailText: value.mailText,
+      object: value.object,
+    };
+  });
 
   return datas;
 };

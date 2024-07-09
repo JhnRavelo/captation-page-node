@@ -25,6 +25,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    mailText: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    object: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   });
 
   campagnes.associate = (models) => {
