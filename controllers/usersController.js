@@ -153,7 +153,7 @@ const userEditAvatar = async (req, res) => {
 
     if (isUser.avatar)
       fileHandler.deleteFileFromDatabase(isUser.avatar, avatarPath, "avatar");
-    const filePath = await fileHandler.createImage(req, avatarPath);
+    const filePath = await fileHandler.createImage(req, avatarPath, "webp");
     isUser.avatar = filePath;
     const result = await isUser.save();
 

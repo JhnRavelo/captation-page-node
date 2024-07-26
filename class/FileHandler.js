@@ -81,17 +81,20 @@ class FileHandler {
     return { fileDir, location, date };
   }
 
-  async createImage(req, imgPath) {
+  async createImage(req, imgPath, type) {
     const galleryArray = new Array();
     const response = req.files.map(async (file) => {
       if (file.mimetype.split("/")[0] == "image") {
-        let webpData = await sharp(file.buffer).webp().toBuffer();
+        let webpData;
+        if (type !== "png") {
+          webpData = await sharp(file.buffer).webp().toBuffer();
+        } else webpData = file.buffer
         const { location } = this.createFile(
           file.originalname.split(".")[0],
           webpData,
-          "webp",
+          type,
           imgPath,
-          "public"
+          type == "png" ? type : "public"
         );
         galleryArray.push(location);
       }
@@ -101,7 +104,10 @@ class FileHandler {
   }
 
   deleteFileFromDatabase(deleted, dirPath, type) {
-    const location = deleted.split(type)[1];
+    const location =
+      deleted.split(type).length > 2
+        ? deleted.split(type).slice(1).join(type)
+        : deleted.split(type)[1];
     let filePath;
     if (type == "pdf") {
       filePath = path.join(dirPath, location + "pdf");
