@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
 
   entreprises.associate = (models) => {
     entreprises.hasMany(models.campagnes, { foreignKey: "entrepriseId" });
+    entreprises.hasMany(models.qrcodes, { foreignKey: "entrepriseId" });
   };
 
   return entreprises;

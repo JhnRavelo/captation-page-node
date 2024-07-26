@@ -10,11 +10,17 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       type: DataTypes.STRING,
     },
+    url: {
+      allowNull: true,
+      type: DataTypes.STRING,
+    },
   });
 
   qrcodes.associate = (models) => {
-    qrcodes.belongsTo(models.campagnes, {foreignKey: "campagneId"});
-  }
+    qrcodes.belongsTo(models.campagnes, { foreignKey: "campagneId" });
+    qrcodes.belongsTo(models.entreprises, { foreignKey: "entrepriseId" });
+    qrcodes.belongsTo(models.medias, { foreignKey: "mediaId" });
+  };
 
   return qrcodes;
 };
