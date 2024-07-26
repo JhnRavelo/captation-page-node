@@ -33,3 +33,9 @@ app.use("/refresh", refreshRouter);
 
 const campagnesRouter = require("./routers/campagnesRouter");
 app.use("/campagne", campagnesRouter);
+
+const entrepriseRouter = require("./routers/entreprisesRouter");
+app.use("/entreprise", entrepriseRouter);
+
+const qrCodesRouter = require("./routers/qrcodesRouter");
+app.use("/qr-code", qrCodesRouter);
