@@ -39,6 +39,7 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: "entrepriseId",
     });
     campagnes.hasOne(models.qrcodes, { foreignKey: "campagneId" });
+    campagnes.hasOne(models.pages, { foreignKey: "campagneId" });
   };
 
   return campagnes;

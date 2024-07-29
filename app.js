@@ -7,7 +7,7 @@ require("dotenv").config();
 const app = express();
 
 db.sequelize.options.logging = false;
-db.sequelize.sync({alter: true}).then(() => {
+db.sequelize.sync({ alter: true }).then(() => {
   app.listen(process.env.SERVER_PORT, async () => {
     console.log(`http://localhost:${process.env.SERVER_PORT}`);
   });
@@ -39,3 +39,6 @@ app.use("/entreprise", entrepriseRouter);
 
 const qrCodesRouter = require("./routers/qrcodesRouter");
 app.use("/qr-code", qrCodesRouter);
+
+const pagesRouter = require("./routers/pagesRouter");
+app.use("/page", pagesRouter);

@@ -25,7 +25,6 @@ module.exports = async (url, logoPath, filePath) => {
     } else {
       logoWidth = maxLogoSize * logoRatio;
     }
-    console.log("LOGO", logoWidth, logoHeight, logoRatio);
     const logoX = (combinedCanvas.width - logoWidth) / 2;
     const logoY = (combinedCanvas.height - logoHeight) / 2;
     ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
