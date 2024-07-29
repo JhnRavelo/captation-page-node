@@ -19,6 +19,7 @@ module.exports = async () => {
       mailText: value.mailText,
       object: value.object,
       logo: value.entreprise.logo ? value.entreprise.logo : "",
+      idData: value.id,
     };
   });
 

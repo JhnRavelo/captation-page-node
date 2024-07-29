@@ -22,6 +22,8 @@ module.exports = async () => {
       id: value.campagne.id,
       entreprise: value.entreprise.entreprise,
       url: value.url,
+      dateDebut: value.createdAt,
+      idData: value.id,
     };
   });
 

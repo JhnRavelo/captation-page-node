@@ -1,9 +1,4 @@
-const {
-  qrcodes,
-  entreprises,
-  campagnes,
-  medias,
-} = require("../database/models");
+const { qrcodes, entreprises, medias } = require("../database/models");
 const { Op } = require("sequelize");
 require("dotenv").config();
 const path = require("path");
@@ -98,4 +93,50 @@ const qrCodeGetAll = async (req, res) => {
   }
 };
 
-module.exports = { qrCodeAdd, qrCodeGetAll };
+const qrCodeDelete = async (req, res) => {
+  const { id } = await req.params;
+
+  try {
+    if (!id)
+      return res.json({ success: false, message: "Erreur ID de QR Code" });
+    const deletedQRCode = await qrcodes.findOne({
+      where: { id: id },
+      include: [{ model: medias }],
+    });
+
+    if (!deletedQRCode)
+      return res.json({
+        success: false,
+        message: "Erreur QR Code à supprimer non trouvé",
+      });
+    const fileHandler = new FileHandler();
+    fileHandler.deleteFileFromDatabase(
+      deletedQRCode.qrcode,
+      qrCodePath,
+      "qrcode"
+    );
+    const result = await deletedQRCode.destroy();
+
+    if (!result)
+      return res.json({
+        success: false,
+        message: "Erreur QR Code non supprimé",
+      });
+    const datas = await getAllQRCodes();
+    res.json({
+      success: true,
+      datas,
+      message:
+        "QR Code " +
+        deletedQRCode.campagneId +
+        " pour " +
+        deletedQRCode.media.media +
+        " supprimé",
+    });
+  } catch (error) {
+    res.json({ success: false, message: "Erreur de serveur" });
+    console.log("ERROR QR CODE DELETE", error);
+  }
+};
+
+module.exports = { qrCodeAdd, qrCodeGetAll, qrCodeDelete };
