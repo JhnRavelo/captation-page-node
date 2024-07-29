@@ -139,4 +139,20 @@ const qrCodeDelete = async (req, res) => {
   }
 };
 
-module.exports = { qrCodeAdd, qrCodeGetAll, qrCodeDelete };
+const qrCodeDownload = async (req, res) => {
+  const { img } = await req.body;
+
+  if (!img)
+    return res.json({ success: false, message: "Erreur de téléchargent" });
+  try {
+    const fileName =
+      img.split("qrcode").length > 2
+        ? img.split("qrcode").slice(1).join("qrcode")
+        : img.split("qrcode")[1];
+    res.download(path.join(qrCodePath, fileName));
+  } catch (error) {
+    console.log("ERROR QR CODE DOWNLOAD", error);
+  }
+};
+
+module.exports = { qrCodeAdd, qrCodeGetAll, qrCodeDelete, qrCodeDownload };
