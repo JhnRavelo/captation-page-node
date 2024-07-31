@@ -63,4 +63,23 @@ const pageAdd = async (req, res) => {
   }
 };
 
-module.exports = { pageAdd };
+const pageGetAll = async (req, res) => {
+  try {
+    const datas = await getAllPages();
+
+    if (!datas)
+      return res.json({
+        success: false,
+        message: "Erreur données des pages non récupéré du base de données",
+      });
+    res.json({ success: true, datas });
+  } catch (error) {
+    res.json({
+      success: false,
+      message: "Erreur données des pages non récupéré",
+    });
+    console.log("ERROR PAGE GET ALL", error);
+  }
+};
+
+module.exports = { pageAdd, pageGetAll };
