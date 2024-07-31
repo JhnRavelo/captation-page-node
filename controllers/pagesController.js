@@ -22,7 +22,10 @@ const pageAdd = async (req, res) => {
       !campagnes ||
       !entreprise
     )
-      return res.json({ success: false, message: "Erreur ajout de page" });
+      return res.json({
+        success: false,
+        message: "Erreur données manquant pour l'ajout de page",
+      });
     if (
       !req.files &&
       req.files.length > 0 &&
@@ -82,4 +85,57 @@ const pageGetAll = async (req, res) => {
   }
 };
 
-module.exports = { pageAdd, pageGetAll };
+const pageUpdate = async (req, res) => {
+  try {
+    const { sloganCampagne, titleColor, titleBackgroundColor, campagnes, id } =
+      await req.body;
+    if (
+      !sloganCampagne ||
+      !titleColor ||
+      !titleBackgroundColor ||
+      !campagnes ||
+      !id
+    )
+      return res.json({
+        success: false,
+        message: "Erreur données manquant pour la modification de page",
+      });
+    const pageUpdated = await pages.findOne({ where: { id: id } });
+
+    if (!pageUpdated)
+      return res.json({
+        success: false,
+        message: "Erreur la page n'existe pas",
+      });
+    const fileHandler = new FileHandler();
+
+    if (req.files && req.files.length > 0) {
+      fileHandler.deleteFileFromDatabase(pageUpdated.img, pagePath, "img");
+      const location = await fileHandler.createImage(req, pagePath, "webp");
+      pageUpdated.img = location;
+    }
+    pageUpdated.set({
+      titleColor,
+      titleBackgroundColor,
+      slogan: sloganCampagne,
+      campagneId: campagnes,
+    });
+    const result = await pageUpdated.save();
+
+    if (!result)
+      return res.json({
+        success: false,
+        message: "Erreur de modification de page dans la base de données",
+      });
+    const datas = await getAllPages();
+    res.json({ success: true, datas });
+  } catch (error) {
+    res.json({
+      success: false,
+      message: "Erreur serveur sur la modification de la page",
+    });
+    console.log("ERROR UPDATE PAGE", error);
+  }
+};
+
+module.exports = { pageAdd, pageGetAll, pageUpdate };
