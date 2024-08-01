@@ -42,3 +42,6 @@ app.use("/qr-code", qrCodesRouter);
 
 const pagesRouter = require("./routers/pagesRouter");
 app.use("/page", pagesRouter);
+
+const statsRouter = require("./routers/statsRouter");
+app.use("/stat", statsRouter);
