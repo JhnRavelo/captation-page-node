@@ -1,4 +1,4 @@
-const { campagnes, entreprises } = require("../database/models");
+const { campagnes, entreprises, logs } = require("../database/models");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const getAllCampagnes = require("../utils/getAllCampagnes");
@@ -41,6 +41,7 @@ const campagneAdd = async (req, res) => {
 
     if (!newCampagne)
       return res.json({ success: false, message: "Campagne non ajouté" });
+    await logs.create({ campagneId: newCampagne.id });
     const datas = await getAllCampagnes();
     res.json({
       datas,
@@ -48,7 +49,7 @@ const campagneAdd = async (req, res) => {
       success: true,
     });
   } catch (error) {
-    res.json({ success: false, message: "Erreur serveur" });
+    res.json({ success: false, message: "Erreur serveur ajout campagne" });
     console.log("ERROR CAMPAGNE ADD", error);
   }
 };

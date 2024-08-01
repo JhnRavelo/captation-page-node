@@ -18,6 +18,8 @@ module.exports = (sequelize, DataTypes) => {
 
   medias.associate = (models) => {
     medias.hasMany(models.qrcodes, { foreignKey: "mediaId" });
+    medias.hasMany(models.logs, { foreignKey: "mediaId" });
+    medias.hasMany(models.stats, { foreignKey: "mediaId" });
   };
 
   return medias;
