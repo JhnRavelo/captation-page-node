@@ -37,6 +37,9 @@ const statAddEmail = async (req, res) => {
     const isMedia = await medias.findOne({ where: { url: media } });
 
     if (!isMedia) return res.json({ success: false });
+    const isEmail = await logs.findOne({ where: { userMail: email } });
+
+    if (isEmail) return res.json({ success: false });
 
     if (!id) {
       const newStat = await stats.create({
@@ -51,6 +54,7 @@ const statAddEmail = async (req, res) => {
       await currentStat.save();
       idStat = currentStat.id;
     }
+
     await logs.create({
       campagneId: idCampagne,
       mediaId: isMedia.id,
@@ -68,6 +72,7 @@ const statAddEmail = async (req, res) => {
       isCampagne.object,
       isCampagne.mailText
     );
+    res.json({ success: true });
   } catch (error) {
     res.json({ success: false });
     console.log("ERROR STAT ADD EMAIL", error);
