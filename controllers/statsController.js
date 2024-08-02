@@ -109,7 +109,41 @@ const statGetAll = async (req, res) => {
       group: ["year", "mediaId"],
     });
 
-    if (!nbrMailPerYears || !nbrScanPerYears)
+    const nbrMailPerMonths = await stats.findAll({
+      where: { mail: true },
+      attributes: [
+        [sequelize.literal("YEAR(stats.createdAt)"), "year"],
+        [sequelize.fn("COUNT", sequelize.col("stats.id")), "count"],
+        [sequelize.literal("MONTH(stats.createdAt)"), "month"],
+        "campagneId",
+      ],
+      include: [
+        { model: medias },
+        { model: campagnes, include: [{ model: entreprises }] },
+      ],
+      group: ["year", "mediaId", "month"],
+    });
+
+    const nbrScanPerMonths = await stats.findAll({
+      attributes: [
+        [sequelize.literal("YEAR(stats.createdAt)"), "year"],
+        [sequelize.fn("COUNT", sequelize.col("stats.id")), "count"],
+        [sequelize.literal("MONTH(stats.createdAt)"), "month"],
+        "campagneId",
+      ],
+      include: [
+        { model: medias },
+        { model: campagnes, include: [{ model: entreprises }] },
+      ],
+      group: ["year", "mediaId", "month"],
+    });
+
+    if (
+      !nbrMailPerYears ||
+      !nbrScanPerYears ||
+      !nbrMailPerMonths ||
+      !nbrScanPerMonths
+    )
       return res.json({
         success: false,
         message: "Erreur récupération des statistiques",
@@ -136,7 +170,37 @@ const statGetAll = async (req, res) => {
         dateDebut: value.year + "-" + "1",
       };
     });
-    res.json({ nbrMailPerYearStats, nbrScanPerYearStats, success: true });
+    const nbrMailPerMonthStats = nbrMailPerMonths.map((stat) => {
+      const value = stat.dataValues;
+      return {
+        media: value.media.media,
+        entreprise: value.campagne.entreprise.entreprise,
+        count: value.count,
+        year: value.year,
+        id: value.campagneId,
+        dateDebut: value.year + "-" + "1",
+        month: value.month,
+      };
+    });
+    const nbrScanPerMonthStats = nbrScanPerMonths.map((stat) => {
+      const value = stat.dataValues;
+      return {
+        media: value.media.media,
+        entreprise: value.campagne.entreprise.entreprise,
+        count: value.count,
+        year: value.year,
+        id: value.campagneId,
+        dateDebut: value.year + "-" + "1",
+        month: value.month,
+      };
+    });
+    res.json({
+      nbrMailPerYearStats,
+      nbrScanPerYearStats,
+      nbrMailPerMonthStats,
+      nbrScanPerMonthStats,
+      success: true,
+    });
   } catch (error) {
     res.json({
       success: false,
