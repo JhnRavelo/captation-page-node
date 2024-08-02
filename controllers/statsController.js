@@ -5,6 +5,7 @@ const {
   campagnes,
   entreprises,
 } = require("../database/models");
+const sequelize = require("sequelize");
 const sendEmail = require("../utils/sendEmail");
 
 const statAdd = async (req, res) => {
@@ -79,4 +80,70 @@ const statAddEmail = async (req, res) => {
   }
 };
 
-module.exports = { statAdd, statAddEmail };
+const statGetAll = async (req, res) => {
+  try {
+    const nbrMailPerYears = await stats.findAll({
+      attributes: [
+        [sequelize.literal("YEAR(stats.createdAt)"), "year"],
+        [sequelize.fn("COUNT", sequelize.col("stats.id")), "count"],
+        "campagneId",
+      ],
+      include: [
+        { model: medias },
+        { model: campagnes, include: [{ model: entreprises }] },
+      ],
+      group: ["year", "mediaId"],
+      where: { mail: true },
+    });
+
+    const nbrScanPerYears = await stats.findAll({
+      attributes: [
+        [sequelize.literal("YEAR(stats.createdAt)"), "year"],
+        [sequelize.fn("COUNT", sequelize.col("stats.id")), "count"],
+        "campagneId",
+      ],
+      include: [
+        { model: medias },
+        { model: campagnes, include: [{ model: entreprises }] },
+      ],
+      group: ["year", "mediaId"],
+    });
+
+    if (!nbrMailPerYears || !nbrScanPerYears)
+      return res.json({
+        success: false,
+        message: "Erreur récupération des statistiques",
+      });
+    const nbrMailPerYearStats = nbrMailPerYears.map((stat) => {
+      const value = stat.dataValues;
+      return {
+        media: value.media.media,
+        entreprise: value.campagne.entreprise.entreprise,
+        count: value.count,
+        year: value.year,
+        id: value.campagneId,
+        dateDebut: value.year + "-" + "1",
+      };
+    });
+    const nbrScanPerYearStats = nbrScanPerYears.map((stat) => {
+      const value = stat.dataValues;
+      return {
+        media: value.media.media,
+        entreprise: value.campagne.entreprise.entreprise,
+        count: value.count,
+        year: value.year,
+        id: value.campagneId,
+        dateDebut: value.year + "-" + "1",
+      };
+    });
+    res.json({ nbrMailPerYearStats, nbrScanPerYearStats, success: true });
+  } catch (error) {
+    res.json({
+      success: false,
+      message: "Erreur serveur récupération des statistiques",
+    });
+    console.log("ERROR GET ALL STAT", error);
+  }
+};
+
+module.exports = { statAdd, statAddEmail, statGetAll };
