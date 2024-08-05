@@ -1,5 +1,4 @@
 const { logs, medias, campagnes, entreprises } = require("../database/models");
-const sequelize = require("sequelize");
 
 const logGetUserMail = async (req, res) => {
   try {
@@ -81,6 +80,7 @@ const logsGetAll = async (req, res) => {
             media: value.media.media,
             mail: value.userMail,
             entreprise: value.campagne.entreprise.entreprise,
+            dateDebut: value.createdAt,
           };
       })
       .filter((data) => data !== undefined);
@@ -94,4 +94,27 @@ const logsGetAll = async (req, res) => {
   }
 };
 
-module.exports = { logGetUserMail, logsGetAll };
+const logsRead = async (req, res) => {
+  try {
+    const unReadLogs = await logs.update(
+      { unRead: false },
+      {
+        where: {
+          unRead: true,
+        },
+      }
+    );
+
+    if (!unReadLogs)
+      return res.json({
+        success: false,
+        message: "Erreur de lecture du journal",
+      });
+    res.json({ success: true });
+  } catch (error) {
+    res.json({ success: false, message: "Erreur serveur lire les journals" });
+    console.log("ERROR read Logs", error);
+  }
+};
+
+module.exports = { logGetUserMail, logsGetAll, logsRead };
