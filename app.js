@@ -45,3 +45,6 @@ app.use("/page", pagesRouter);
 
 const statsRouter = require("./routers/statsRouter");
 app.use("/stat", statsRouter);
+
+const logsRouter = require("./routers/logsRouter");
+app.use("/log", logsRouter);
