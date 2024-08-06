@@ -1,6 +1,5 @@
 const { campagnes, entreprises, logs } = require("../database/models");
-const Sequelize = require("sequelize");
-const Op = Sequelize.Op;
+const {Op} = require("sequelize");
 const getAllCampagnes = require("../utils/getAllCampagnes");
 
 const campagneAdd = async (req, res) => {

@@ -1,10 +1,16 @@
 const { logs, medias, campagnes, entreprises } = require("../database/models");
+const { Op } = require("sequelize");
 
 const logGetUserMail = async (req, res) => {
   try {
     const userMails = await logs.findAll({
       include: [{ model: medias }],
       order: [["createdAt", "DESC"]],
+      where: {
+        userMail: {
+          [Op.not]: null,
+        },
+      },
     });
 
     if (!userMails)
@@ -53,7 +59,7 @@ const logsGetAll = async (req, res) => {
       });
     const datas = dataLogs.map((data) => {
       const value = data.dataValues;
-      if (value?.userMail) {
+      if (value?.userMail && value?.media) {
         return {
           id: value.campagneId,
           media: value.media.media,
@@ -64,7 +70,6 @@ const logsGetAll = async (req, res) => {
       } else
         return {
           id: value.campagneId,
-          media: value.media.media,
           entreprise: value.campagne.entreprise.entreprise,
           title: value.campagne.title,
           dateDebut: value.createdAt,
