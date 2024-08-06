@@ -3,6 +3,8 @@ const { users } = require("../database/models");
 const { Op } = require("sequelize");
 const FileHandler = require("../class/FileHandler");
 const path = require("path");
+const sendEmail = require("../utils/sendEmail");
+require("dotenv").config();
 
 const avatarPath = path.join(__dirname, "..", "public", "avatar");
 
@@ -180,4 +182,70 @@ const userEditAvatar = async (req, res) => {
   }
 };
 
-module.exports = { userLogin, userLogout, userEditProfile, userEditAvatar };
+const userPasswordForget = async (req, res) => {
+  try {
+    const { email } = await req.body;
+
+    if (!email)
+      return res.json({
+        success: false,
+        message: "Erreur utilisateur non envoyé",
+      });
+    const userMail = await users.findOne({ where: { email: email } });
+
+    if (!userMail)
+      return res.json({
+        success: false,
+        message: "Erreur utilisateur non trouvé",
+      });
+    const subject =
+      "Réinitialisation de Mot de Passe : Votre Nouvel Accès Sécurisé";
+    const content = `<p style="font-family: 'Lato', sans-serif;">
+      Cher Utilisateur,<br /> <br />
+
+      Nous avons reçu une demande de réinitialisation de votre mot de passe.
+      Pour garantir la sécurité de votre compte, un nouveau mot de passe a été
+      généré pour vous. <br /> <br />
+      Veuillez trouver votre nouveau mot de passe ci-dessous : <br />
+
+      Nouveau mot de passe temporaire : ${process.env.PASSWORD_RESET} <br /> <br />
+
+      Il est important de noter que ce mot de passe a été généré de manière
+      sécurisée et est temporaire. Pour assurer la protection continue de vos
+      informations, nous vous recommandons de vous connecter dès que possible et
+      de changer ce mot de passe temporaire par un mot de passe personnel et
+      sécurisé. Pour ce faire, connectez-vous à votre compte avec le mot de
+      passe temporaire, accédez au trois points à coter de votre photo de profils 
+      et cliquez sur 'Modifier Profile', ensuite modifier votre mot de passe. <br /> <br />
+
+      Nous vous rappelons l'importance d'utiliser un mot de passe fort,
+      combinant lettres majuscules et minuscules, chiffres, afin de renforcer 
+      la sécurité de votre compte. Si vous n'avez
+      pas initié cette demande de réinitialisation, veuillez contacter
+      immédiatement notre service d'assistance pour prendre les mesures
+      nécessaires. <br /> <br />
+
+      Merci de votre attention et de votre compréhension. Votre sécurité est
+      notre priorité. <br /> <br />
+
+      Cordialement, <br /> <br />
+
+      L'Équipe de Support
+    </p>`;
+    userMail.password = await bcrypt.hash(process.env.PASSWORD_RESET, 10);
+    await userMail.save();
+    sendEmail("Europ'Alu", email, subject, content);
+    res.json({ success: true, message: "Nous vous avons envoyer un email" });
+  } catch (error) {
+    res.json({ success: false, message: "Erreur serveur mot de passe" });
+    console.log("ERROR PASSWORD FORGET", error);
+  }
+};
+
+module.exports = {
+  userLogin,
+  userLogout,
+  userEditProfile,
+  userEditAvatar,
+  userPasswordForget,
+};
