@@ -38,7 +38,7 @@ module.exports = (sequelize, DataTypes) => {
     campagnes.belongsTo(models.entreprises, {
       foreignKey: "entrepriseId",
     });
-    campagnes.hasOne(models.qrcodes, { foreignKey: "campagneId" });
+    campagnes.hasMany(models.qrcodes, { foreignKey: "campagneId" });
     campagnes.hasOne(models.pages, { foreignKey: "campagneId" });
     campagnes.hasMany(models.logs, { foreignKey: "campagneId" });
     campagnes.hasMany(models.stats, { foreignKey: "campagneId" });

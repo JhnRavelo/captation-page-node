@@ -1,6 +1,17 @@
-const { campagnes, entreprises, logs } = require("../database/models");
-const {Op} = require("sequelize");
+const {
+  campagnes,
+  entreprises,
+  logs,
+  qrcodes,
+  pages,
+} = require("../database/models");
+const { Op } = require("sequelize");
 const getAllCampagnes = require("../utils/getAllCampagnes");
+const FileHandler = require("../class/FileHandler");
+const path = require("path");
+
+const pagePath = path.join(__dirname, "..", "public", "img");
+const qrCodePath = path.join(__dirname, "..", "public", "qrcode");
 
 const campagneAdd = async (req, res) => {
   try {
@@ -142,9 +153,47 @@ const campagneUpdateMail = async (req, res) => {
   }
 };
 
+const campagneDelete = async (req, res) => {
+  const { id } = await req.params;
+  try {
+    if (!id) return res.json({ success: false, message: "Données non envoyé" });
+    const isCampagne = await campagnes.findOne({ where: { id: id } });
+
+    if (!isCampagne)
+      return res.json({ success: false, message: "Campagne non trouvé" });
+    const isQRCodes = await qrcodes.findAll({ where: { campagneId: id } });
+    const isPage = await pages.findOne({ where: { campagneId: id } });
+    const fileHandler = new FileHandler();
+
+    if (isQRCodes) {
+      isQRCodes.map((qrCode) => {
+        fileHandler.deleteFileFromDatabase(qrCode.qrcode, qrCodePath, "qrcode");
+      });
+      await qrcodes.destroy({ where: { campagneId: id } });
+    }
+
+    if (isPage) {
+      fileHandler.deleteFileFromDatabase(isPage.img, pagePath, "img");
+      await isPage.destroy();
+    }
+    const result = await isCampagne.destroy();
+
+    if (!result)
+      return res.json({
+        success: false,
+        message: "Erreur de suppression campagne",
+      });
+    res.json({ success: true, message: `Campagne ${id} a été supprimer` });
+  } catch (error) {
+    res.json({ success: false, message: "Erreur serveur" });
+    console.log("ERROR CAMPAGNE DELETE", error);
+  }
+};
+
 module.exports = {
   campagneAdd,
   campagneGetAll,
   campagneUpdate,
   campagneUpdateMail,
+  campagneDelete,
 };

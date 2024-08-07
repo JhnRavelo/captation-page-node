@@ -41,6 +41,7 @@ const logsGetAll = async (req, res) => {
         { model: campagnes, include: [{ model: entreprises }] },
       ],
       order: [["createdAt", "DESC"]],
+      where: { campagneId: { [Op.not]: null } },
     });
 
     const dataLogsUnread = await logs.findAll({
@@ -49,7 +50,7 @@ const logsGetAll = async (req, res) => {
         { model: campagnes, include: [{ model: entreprises }] },
       ],
       order: [["createdAt", "DESC"]],
-      where: { unRead: true },
+      where: { unRead: true, campagneId: { [Op.not]: null } },
     });
 
     if (!dataLogs || !dataLogsUnread)

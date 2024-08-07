@@ -6,6 +6,7 @@ const {
   campagneGetAll,
   campagneUpdate,
   campagneUpdateMail,
+  campagneDelete,
 } = require("../controllers/campagnesController");
 
 router
@@ -15,5 +16,6 @@ router
   .put(verifyJWT, campagneUpdate);
 
 router.put("/mail", verifyJWT, campagneUpdateMail);
+router.delete("/delete/:id", verifyJWT, campagneDelete);
 
 module.exports = router;

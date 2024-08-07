@@ -6,6 +6,7 @@ const {
   entreprises,
 } = require("../database/models");
 const sequelize = require("sequelize");
+const { Op } = require("sequelize");
 const sendEmail = require("../utils/sendEmail");
 
 const statAdd = async (req, res) => {
@@ -93,7 +94,7 @@ const statGetAll = async (req, res) => {
         { model: campagnes, include: [{ model: entreprises }] },
       ],
       group: ["year", "mediaId"],
-      where: { mail: true },
+      where: { mail: true, campagneId: { [Op.not]: null } },
     });
 
     const nbrScanPerYears = await stats.findAll({
@@ -107,10 +108,11 @@ const statGetAll = async (req, res) => {
         { model: campagnes, include: [{ model: entreprises }] },
       ],
       group: ["year", "mediaId"],
+      where: { campagneId: { [Op.not]: null } },
     });
 
     const nbrMailPerMonths = await stats.findAll({
-      where: { mail: true },
+      where: { mail: true, campagneId: { [Op.not]: null } },
       attributes: [
         [sequelize.literal("YEAR(stats.createdAt)"), "year"],
         [sequelize.fn("COUNT", sequelize.col("stats.id")), "count"],
@@ -136,6 +138,7 @@ const statGetAll = async (req, res) => {
         { model: campagnes, include: [{ model: entreprises }] },
       ],
       group: ["year", "mediaId", "month"],
+      where: { campagneId: { [Op.not]: null } },
     });
 
     if (
