@@ -176,6 +176,11 @@ const campagneDelete = async (req, res) => {
       fileHandler.deleteFileFromDatabase(isPage.img, pagePath, "img");
       await isPage.destroy();
     }
+    await logs.create({
+      deleteId: id,
+      entrepriseId: isCampagne.entrepriseId,
+      title: isCampagne.title,
+    });
     const result = await isCampagne.destroy();
 
     if (!result)

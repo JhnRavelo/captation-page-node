@@ -15,11 +15,20 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    deleteId: {
+      allowNull: true,
+      type: DataTypes.STRING,
+    },
+    title: {
+      allowNull: true,
+      type: DataTypes.STRING,
+    }
   });
 
   logs.associate = (models) => {
     logs.belongsTo(models.campagnes, { foreignKey: "campagneId" });
     logs.belongsTo(models.medias, { foreignKey: "mediaId" });
+    logs.belongsTo(models.entreprises, { foreignKey: "entrepriseId" });
   };
 
   return logs;

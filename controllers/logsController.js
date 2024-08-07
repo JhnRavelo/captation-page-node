@@ -46,9 +46,9 @@ const logsGetAll = async (req, res) => {
       include: [
         { model: medias },
         { model: campagnes, include: [{ model: entreprises }] },
+        { model: entreprises },
       ],
       order: [["createdAt", "DESC"]],
-      where: { campagneId: { [Op.not]: null } },
     });
 
     const dataLogsUnread = await logs.findAll({
@@ -65,24 +65,35 @@ const logsGetAll = async (req, res) => {
         success: false,
         message: "Erreur récupération des journals du base de données",
       });
-    const datas = dataLogs.map((data) => {
-      const value = data.dataValues;
-      if (value?.userMail && value?.media) {
-        return {
-          id: value.campagneId,
-          media: value.media.media,
-          mail: value.userMail,
-          entreprise: value.campagne.entreprise.entreprise,
-          dateDebut: value.createdAt,
-        };
-      } else
-        return {
-          id: value.campagneId,
-          entreprise: value.campagne.entreprise.entreprise,
-          title: value.campagne.title,
-          dateDebut: value.createdAt,
-        };
-    });
+    const datas = dataLogs
+      .map((data) => {
+        const value = data.dataValues;
+        if (value?.userMail && value?.media && value?.campagneId) {
+          return {
+            id: value.campagneId,
+            media: value.media.media,
+            mail: value.userMail,
+            entreprise: value.campagne.entreprise.entreprise,
+            dateDebut: value.createdAt,
+          };
+        } else if (value?.campagneId) {
+          return {
+            id: value.campagneId,
+            entreprise: value.campagne.entreprise.entreprise,
+            title: value.campagne.title,
+            dateDebut: value.createdAt,
+          };
+        } else if (value?.deleteId && value?.entrepriseId && value?.title) {
+          return {
+            id: value.deleteId,
+            deleteId: value.deleteId,
+            entreprise: value.entreprise.entreprise,
+            dateDebut: value.createdAt,
+            title: value?.title,
+          };
+        }
+      })
+      .filter((data) => data !== undefined);
     const notifs = dataLogsUnread
       .map((data) => {
         const value = data.dataValues;
