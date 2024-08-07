@@ -138,4 +138,31 @@ const pageUpdate = async (req, res) => {
   }
 };
 
-module.exports = { pageAdd, pageGetAll, pageUpdate };
+const pageDelete = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id)
+      return res.json({
+        success: false,
+        message: "Erreur données manquant pour la suppression de page",
+      });
+    const isPage = await pages.findOne({ where: { id: id } });
+
+    if (!isPage)
+      return res.json({ success: false, message: "Erreur page non trouvé" });
+    const fileHandler = new FileHandler();
+    fileHandler.deleteFileFromDatabase(isPage.img, pagePath, "img");
+    const result = await isPage.destroy();
+
+    if (!result)
+      return res.json({ success: false, message: "Erreur page non supprimé" });
+    const datas = await getAllPages();
+    res.json({ datas, success: true });
+  } catch (error) {
+    res.json({ success: false, message: "Erreur serveur suppression page" });
+    console.log("ERROR PAGE DELETE", error);
+  }
+};
+
+module.exports = { pageAdd, pageGetAll, pageUpdate, pageDelete };

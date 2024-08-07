@@ -4,6 +4,7 @@ const {
   pageAdd,
   pageGetAll,
   pageUpdate,
+  pageDelete,
 } = require("../controllers/pagesController");
 const router = express.Router();
 const multer = require("multer");
@@ -15,5 +16,7 @@ router
   .post(memoryStorage.any(), verifyJWT, pageAdd)
   .get(pageGetAll)
   .put(memoryStorage.any(), verifyJWT, pageUpdate);
+
+router.delete("/delete/:id", verifyJWT, pageDelete)
 
 module.exports = router;
