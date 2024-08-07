@@ -20,11 +20,18 @@ const logGetUserMail = async (req, res) => {
       });
     const users = userMails.map((user) => {
       const value = user.dataValues;
-      return {
-        id: value.campagneId,
-        media: value.media.media,
-        mail: value.userMail,
-      };
+
+      if (value?.campagneId) {
+        return {
+          id: value.campagneId,
+          media: value.media.media,
+          mail: value.userMail,
+        };
+      } else
+        return {
+          media: value.media.media,
+          mail: value.userMail,
+        };
     });
     res.json({ success: true, users });
   } catch (error) {
