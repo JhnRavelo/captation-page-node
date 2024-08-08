@@ -4,7 +4,11 @@ const { Op } = require("sequelize");
 const logGetUserMail = async (req, res) => {
   try {
     const userMails = await logs.findAll({
-      include: [{ model: medias }],
+      include: [
+        { model: medias },
+        { model: entreprises },
+        { model: campagnes, include: [{ model: entreprises }] },
+      ],
       order: [["createdAt", "DESC"]],
       where: {
         userMail: {
@@ -18,21 +22,27 @@ const logGetUserMail = async (req, res) => {
         success: false,
         message: "Erreur récupération email du base de données",
       });
-    const users = userMails.map((user) => {
-      const value = user.dataValues;
+    const users = userMails
+      .map((user) => {
+        const value = user.dataValues;
 
-      if (value?.campagneId) {
-        return {
-          id: value.campagneId,
-          media: value.media.media,
-          mail: value.userMail,
-        };
-      } else
-        return {
-          media: value.media.media,
-          mail: value.userMail,
-        };
-    });
+        if (value?.campagneId) {
+          return {
+            id: value.campagneId,
+            media: value.media.media,
+            mail: value.userMail,
+            title: value.campagne.title,
+            entreprise: value.campagne.entreprise.entreprise,
+          };
+        } else if (value?.title && value?.entrepriseId)
+          return {
+            media: value.media.media,
+            mail: value.userMail,
+            title: value.title,
+            entreprise: value.entreprise.entreprise,
+          };
+      })
+      .filter((user) => user !== undefined);
     res.json({ success: true, users });
   } catch (error) {
     res.json({ success: false, message: "Erreur serveur récupération email" });

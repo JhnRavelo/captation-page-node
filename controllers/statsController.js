@@ -313,7 +313,6 @@ const statGetAll = async (req, res) => {
         };
       }
     );
-    console.log(nbrScanPerMonthPerCampagneStats)
     res.json({
       nbrMailPerYearStats,
       nbrScanPerYearStats,
