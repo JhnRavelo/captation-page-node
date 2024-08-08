@@ -78,10 +78,9 @@ const logsGetAll = async (req, res) => {
     const datas = dataLogs
       .map((data) => {
         const value = data.dataValues;
-        if (value?.userMail && value?.media && value?.campagneId) {
+        if (value?.userMail && value?.campagneId) {
           return {
             id: value.campagneId,
-            media: value.media.media,
             mail: value.userMail,
             entreprise: value.campagne.entreprise.entreprise,
             dateDebut: value.createdAt,
@@ -111,7 +110,6 @@ const logsGetAll = async (req, res) => {
         if (value?.userMail)
           return {
             id: value.campagneId,
-            media: value.media.media,
             mail: value.userMail,
             entreprise: value.campagne.entreprise.entreprise,
             dateDebut: value.createdAt,
