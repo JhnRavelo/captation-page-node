@@ -1,5 +1,5 @@
 const FileHandler = require("../class/FileHandler");
-const { pages, entreprises } = require("../database/models");
+const { pages } = require("../database/models");
 const path = require("path");
 const getAllPages = require("../utils/getAllPages");
 

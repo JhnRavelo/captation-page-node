@@ -53,7 +53,6 @@ const qrCodeAdd = async (req, res) => {
         filePath,
         res,
         url,
-        isEntreprise,
         isMedia,
         campagnes
       );
