@@ -18,7 +18,6 @@ module.exports = (sequelize, DataTypes) => {
 
   qrcodes.associate = (models) => {
     qrcodes.belongsTo(models.campagnes, { foreignKey: "campagneId" });
-    qrcodes.belongsTo(models.entreprises, { foreignKey: "entrepriseId" });
     qrcodes.belongsTo(models.medias, { foreignKey: "mediaId" });
   };
 

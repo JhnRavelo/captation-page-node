@@ -2,7 +2,7 @@ const { pages, campagnes, entreprises } = require("../database/models");
 
 module.exports = async () => {
   const allPages = await pages.findAll({
-    include: [{ model: campagnes }, { model: entreprises }],
+    include: [{ model: campagnes , include: [{model: entreprises}]}],
     order: [["createdAt", "DESC"]],
   });
 
@@ -11,7 +11,7 @@ module.exports = async () => {
     return {
       id: value.campagneId,
       idData: value.id,
-      entreprise: value.entreprise.entreprise,
+      entreprise: value.campagne.entreprise.entreprise,
       titleColor: value.titleColor,
       titleBackgroundColor: value.titleBackgroundColor,
       sloganCampagne: value.slogan,

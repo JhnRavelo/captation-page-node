@@ -21,7 +21,7 @@ const qrCodeAdd = async (req, res) => {
     });
     const isQRCode = await qrcodes.findOne({
       where: {
-        [Op.and]: [{ entrepriseId: isEntreprise.id }, { mediaId: isMedia.id }],
+        [Op.and]: [{ campagneId: campagnes }, { mediaId: isMedia.id }],
       },
     });
 
@@ -29,8 +29,8 @@ const qrCodeAdd = async (req, res) => {
       return res.json({
         success: false,
         message:
-          "Il existe déjà une campagne au nom de '" +
-          isEntreprise.entreprise +
+          "Il existe déjà une QR CODE pour la campagne '" +
+          campagnes +
           "' pour '" +
           isMedia.media +
           "'",
@@ -64,7 +64,6 @@ const qrCodeAdd = async (req, res) => {
         isEntreprise.logo,
         res,
         url,
-        isEntreprise,
         isMedia,
         campagnes
       );

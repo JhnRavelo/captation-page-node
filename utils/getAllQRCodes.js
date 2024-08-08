@@ -7,7 +7,10 @@ const {
 
 module.exports = async () => {
   const allQRCodes = await qrcodes.findAll({
-    include: [{ model: medias }, { model: entreprises }, { model: campagnes }],
+    include: [
+      { model: medias },
+      { model: campagnes, include: [{ model: entreprises }] },
+    ],
     order: [["createdAt", "DESC"]],
   });
 
@@ -20,7 +23,7 @@ module.exports = async () => {
       img: value.qrcode,
       title: value.campagne.title,
       id: value.campagne.id,
-      entreprise: value.entreprise.entreprise,
+      entreprise: value.campagne.entreprise.entreprise,
       url: value.url,
       dateDebut: value.createdAt,
       idData: value.id,

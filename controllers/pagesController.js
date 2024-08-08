@@ -7,21 +7,10 @@ const pagePath = path.join(__dirname, "..", "public", "img");
 
 const pageAdd = async (req, res) => {
   try {
-    const {
-      sloganCampagne,
-      titleColor,
-      titleBackgroundColor,
-      campagnes,
-      entreprise,
-    } = await req.body;
+    const { sloganCampagne, titleColor, titleBackgroundColor, campagnes } =
+      await req.body;
 
-    if (
-      !sloganCampagne ||
-      !titleColor ||
-      !titleBackgroundColor ||
-      !campagnes ||
-      !entreprise
-    )
+    if (!sloganCampagne || !titleColor || !titleBackgroundColor || !campagnes)
       return res.json({
         success: false,
         message: "Erreur données manquant pour l'ajout de page",
@@ -33,11 +22,8 @@ const pageAdd = async (req, res) => {
     )
       return res.json({ success: false, message: "Pas d'image campagne reçu" });
     const isPage = await pages.findOne({ where: { campagneId: campagnes } });
-    const isEntreprise = await entreprises.findOne({
-      where: { entreprise: entreprise },
-    });
 
-    if (isPage || !isEntreprise)
+    if (isPage)
       return res.json({
         success: false,
         message: "Erreur ce campagne a déjà une page",
@@ -49,7 +35,6 @@ const pageAdd = async (req, res) => {
       img: location,
       titleColor,
       titleBackgroundColor,
-      entrepriseId: isEntreprise.id,
       campagneId: campagnes,
     });
 

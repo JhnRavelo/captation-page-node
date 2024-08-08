@@ -10,7 +10,6 @@ module.exports = async (
   filePath,
   res,
   url,
-  isEntreprise,
   isMedia,
   campagnes
 ) => {
@@ -25,7 +24,6 @@ module.exports = async (
   );
   const result = await qrcodes.create({
     campagneId: campagnes,
-    entrepriseId: isEntreprise.id,
     mediaId: isMedia.id,
     url: url,
     qrcode: location,

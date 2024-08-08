@@ -26,7 +26,6 @@ module.exports = (sequelize, DataTypes) => {
 
   pages.associate = (models) => {
     pages.belongsTo(models.campagnes, { foreignKey: "campagneId" });
-    pages.belongsTo(models.entreprises, { foreignKey: "entrepriseId" });
   };
 
   return pages;
