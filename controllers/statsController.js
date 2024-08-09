@@ -222,6 +222,7 @@ const statGetAll = async (req, res) => {
         year: value.year,
         id: value.campagneId,
         dateDebut: value.year + "-" + "1",
+        title: value.campagne.title,
       };
     });
     const nbrScanPerYearStats = nbrScanPerYears.map((stat) => {
@@ -233,6 +234,7 @@ const statGetAll = async (req, res) => {
         year: value.year,
         id: value.campagneId,
         dateDebut: value.year + "-" + "1",
+        title: value.campagne.title,
       };
     });
     const nbrMailPerYearPerCampagneStats = nbrMailPerYearPerCampagnes.map(
@@ -245,6 +247,7 @@ const statGetAll = async (req, res) => {
           year: value.year,
           id: value.campagneId,
           dateDebut: value.year + "-" + "1",
+          title: value.campagne.title,
         };
       }
     );
@@ -258,6 +261,7 @@ const statGetAll = async (req, res) => {
           year: value.year,
           id: value.campagneId,
           dateDebut: value.year + "-" + "1",
+          title: value.campagne.title,
         };
       }
     );
@@ -271,6 +275,7 @@ const statGetAll = async (req, res) => {
         id: value.campagneId,
         dateDebut: value.year + "-" + "1",
         month: value.month,
+        title: value.campagne.title,
       };
     });
     const nbrScanPerMonthStats = nbrScanPerMonths.map((stat) => {
@@ -283,6 +288,7 @@ const statGetAll = async (req, res) => {
         id: value.campagneId,
         dateDebut: value.year + "-" + "1",
         month: value.month,
+        title: value.campagne.title,
       };
     });
     const nbrMailPerMonthPerCampagneStats = nbrMailPerMonthPerCampagnes.map(
@@ -296,6 +302,7 @@ const statGetAll = async (req, res) => {
           id: value.campagneId,
           dateDebut: value.year + "-" + "1",
           month: value.month,
+          title: value.campagne.title,
         };
       }
     );
@@ -310,6 +317,7 @@ const statGetAll = async (req, res) => {
           id: value.campagneId,
           dateDebut: value.year + "-" + "1",
           month: value.month,
+          title: value.campagne.title,
         };
       }
     );
