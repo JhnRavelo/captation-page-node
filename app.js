@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const db = require("./database/models");
 require("dotenv").config();
 const app = express();
+const path = require("path");
 
 db.sequelize.options.logging = false;
 db.sequelize.sync({ alter: true }).then(() => {
@@ -48,3 +49,7 @@ app.use("/stat", statsRouter);
 
 const logsRouter = require("./routers/logsRouter");
 app.use("/log", logsRouter);
+
+app.use((req, res, next) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});

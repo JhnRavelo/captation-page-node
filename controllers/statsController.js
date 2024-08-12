@@ -35,29 +35,28 @@ const statAddEmail = async (req, res) => {
 
   try {
     if (!idCampagne || !media || !email) return res.json({ success: false });
-    let idStat;
     const isMedia = await medias.findOne({ where: { url: media } });
 
     if (!isMedia) return res.json({ success: false });
-    const isEmail = await logs.findOne({ where: { userMail: email } });
+    const isEmail = await logs.findOne({
+      where: { [Op.and]: [{ userMail: email }, { campagneId: idCampagne }] },
+    });
 
     if (isEmail) return res.json({ success: false });
 
     if (!id) {
-      const newStat = await stats.create({
+      await stats.create({
         campagneId: idCampagne,
         mediaId: isMedia.id,
         mail: true,
       });
-      idStat = newStat.id;
     } else {
       const currentStat = await stats.findOne({ where: { id: id } });
       currentStat.mail = true;
       await currentStat.save();
-      idStat = currentStat.id;
     }
 
-    await logs.create({
+    const createdLog = await logs.create({
       campagneId: idCampagne,
       mediaId: isMedia.id,
       userMail: email,
@@ -68,12 +67,14 @@ const statAddEmail = async (req, res) => {
     });
 
     if (!isCampagne) return res.json({ success: false });
-    sendEmail(
+    const messageId = await sendEmail(
       isCampagne.entreprise.entreprise,
       email,
       isCampagne.object,
       isCampagne.mailText
     );
+    createdLog.messageId = messageId;
+    await createdLog.save();
     res.json({ success: true });
   } catch (error) {
     res.json({ success: false });

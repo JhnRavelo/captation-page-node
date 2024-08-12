@@ -1,7 +1,7 @@
 const SibApiV3Sdk = require("@sendinblue/client");
 require("dotenv").config();
 
-module.exports = (name, to, subject, content) => {
+module.exports = async (name, to, subject, content) => {
   const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
   apiInstance.setApiKey(
     SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
@@ -23,13 +23,15 @@ module.exports = (name, to, subject, content) => {
   sendSmtpEmail.to = [{ email: to, name: "Client" }];
   sendSmtpEmail.subject = subject;
   sendSmtpEmail.htmlContent = `<html><body>${content}</body></html>`;
+  sendSmtpEmail.trackClicks = true;
+  sendSmtpEmail.trackOpens = true;
 
-  apiInstance.sendTransacEmail(sendSmtpEmail).then(
-    function (data) {
-      console.log("Email envoyé à " + to);
-    },
-    function (error) {
-      console.error("ERROR", error);
-    }
-  );
+  try {
+    const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log("Email envoyé à " + to + " and " + data.body.messageId);
+    return data.body.messageId;
+  } catch (error) {
+    console.error("ERROR SEND EMAIL", error);
+    throw error;
+  }
 };
