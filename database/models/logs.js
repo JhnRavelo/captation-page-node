@@ -23,10 +23,16 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       type: DataTypes.STRING,
     }, 
-    messageId: {
-      allowNull: true,
-      type: DataTypes.STRING,
-    }
+    opened: {
+      allowNull: false,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    clicked: {
+      allowNull: false,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
   });
 
   logs.associate = (models) => {
