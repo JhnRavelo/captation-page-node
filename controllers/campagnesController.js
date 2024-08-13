@@ -185,6 +185,10 @@ const campagneDelete = async (req, res) => {
       { title: isCampagne.title, entrepriseId: isCampagne.entrepriseId },
       { where: { campagneId: id } }
     );
+    await stats.update(
+      { title: isCampagne.title, entrepriseId: isCampagne.entrepriseId },
+      { where: { campagneId: id } }
+    );
     const result = await isCampagne.destroy();
 
     if (!result)

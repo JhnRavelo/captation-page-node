@@ -16,6 +16,7 @@ module.exports = (sequelize, DataTypes) => {
   stats.associate = (models) => {
     stats.belongsTo(models.campagnes, { foreignKey: "campagneId" });
     stats.belongsTo(models.medias, { foreignKey: "mediaId" });
+    stats.belongsTo(models.entreprises, { foreignKey: "entrepriseId" });
   };
 
   return stats;

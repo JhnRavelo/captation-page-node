@@ -50,6 +50,6 @@ app.use("/stat", statsRouter);
 const logsRouter = require("./routers/logsRouter");
 app.use("/log", logsRouter);
 
-app.use((req, res, next) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
+// app.use((req, res, next) => {
+//   res.sendFile(path.join(__dirname, "public", "index.html"));
+// });
