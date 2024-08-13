@@ -197,6 +197,32 @@ const statGetAll = async (req, res) => {
       where: { campagneId: { [Op.not]: null } },
     });
 
+    const nbrMailOpened = await logs.findAll({
+      attributes: [
+        [sequelize.literal("YEAR(logs.createdAt)"), "year"],
+        [sequelize.fn("COUNT", sequelize.col("logs.id")), "count"],
+        "entrepriseId",
+        "campagneId",
+        "deleteId",
+      ],
+      include: [
+        { model: medias },
+        { model: campagnes, include: [{ model: entreprises }] },
+        { model: entreprises },
+      ],
+      group: ["year", "mediaId", "entrepriseId"],
+      where: {
+        [Op.or]: [
+          {
+            [Op.and]: [{ campagneId: { [Op.not]: null } }, { opened: true }],
+          },
+          {
+            [Op.and]: [{ deleteId: { [Op.not]: null } }, { opened: true }],
+          },
+        ],
+      },
+    });
+
     if (
       !nbrMailPerYears ||
       !nbrScanPerYears ||
@@ -205,7 +231,8 @@ const statGetAll = async (req, res) => {
       !nbrMailPerMonthPerCampagnes ||
       !nbrScanPerMonthPerCampagnes ||
       !nbrMailPerYearPerCampagnes ||
-      !nbrScanPerYearPerCampagnes
+      !nbrScanPerYearPerCampagnes ||
+      !nbrMailOpened
     )
       return res.json({
         success: false,
@@ -219,7 +246,7 @@ const statGetAll = async (req, res) => {
         count: value.count,
         year: value.year,
         id: value.campagneId,
-        dateDebut: value.year + "-" + "1",
+        dateDebut: value.year + "-1",
         title: value.campagne.title,
       };
     });
@@ -231,7 +258,7 @@ const statGetAll = async (req, res) => {
         count: value.count,
         year: value.year,
         id: value.campagneId,
-        dateDebut: value.year + "-" + "1",
+        dateDebut: value.year + "-1",
         title: value.campagne.title,
       };
     });
@@ -244,7 +271,7 @@ const statGetAll = async (req, res) => {
           count: value.count,
           year: value.year,
           id: value.campagneId,
-          dateDebut: value.year + "-" + "1",
+          dateDebut: value.year + "-1",
           title: value.campagne.title,
         };
       }
@@ -258,7 +285,7 @@ const statGetAll = async (req, res) => {
           count: value.count,
           year: value.year,
           id: value.campagneId,
-          dateDebut: value.year + "-" + "1",
+          dateDebut: value.year + "-1",
           title: value.campagne.title,
         };
       }
@@ -271,7 +298,7 @@ const statGetAll = async (req, res) => {
         count: value.count,
         year: value.year,
         id: value.campagneId,
-        dateDebut: value.year + "-" + "1",
+        dateDebut: value.year + "-1",
         month: value.month,
         title: value.campagne.title,
       };
@@ -284,7 +311,7 @@ const statGetAll = async (req, res) => {
         count: value.count,
         year: value.year,
         id: value.campagneId,
-        dateDebut: value.year + "-" + "1",
+        dateDebut: value.year + "-1",
         month: value.month,
         title: value.campagne.title,
       };
@@ -298,7 +325,7 @@ const statGetAll = async (req, res) => {
           count: value.count,
           year: value.year,
           id: value.campagneId,
-          dateDebut: value.year + "-" + "1",
+          dateDebut: value.year + "-1",
           month: value.month,
           title: value.campagne.title,
         };
@@ -313,17 +340,43 @@ const statGetAll = async (req, res) => {
           count: value.count,
           year: value.year,
           id: value.campagneId,
-          dateDebut: value.year + "-" + "1",
+          dateDebut: value.year + "-1",
           month: value.month,
           title: value.campagne.title,
         };
       }
     );
+    const nbrMailOpenedStats = nbrMailOpened
+      .map((stat) => {
+        const value = stat.dataValues;
+
+        if (value.campagneId) {
+          return {
+            media: value.media.media,
+            entreprise: value.campagne.entreprise.entreprise,
+            count: value.count,
+            year: value.year,
+            id: value.campagneId,
+            dateDebut: value.year + "-1",
+          };
+        } else if (value.entrepriseId) {
+          return {
+            media: value.media.media,
+            entreprise: value.entreprise.entreprise,
+            count: value.count,
+            year: value.year,
+            dateDebut: value.year + "-1",
+            title: value.title,
+          };
+        }
+      })
+      .filter((stat) => stat !== undefined);
     res.json({
       nbrMailPerYearStats,
       nbrScanPerYearStats,
       nbrMailPerMonthStats,
       nbrScanPerMonthStats,
+      nbrMailOpenedStats,
       success: true,
       nbrMailPerMonthPerCampagneStats,
       nbrScanPerMonthPerCampagneStats,
@@ -343,13 +396,18 @@ const statOpenedEmail = async (req, res) => {
   try {
     const email = req.query.email;
     const campagneId = req.query.id;
-    
-    if (!email || !campagneId) return;
-    const openedMail = await logs.findOne({
+    console.log(email, campagneId);
+    if (!email || !campagneId) return res.sendStatus(400);
+    let openedMail = await logs.findOne({
       where: { [Op.and]: [{ userMail: email }, { campagneId: campagneId }] },
     });
 
-    if (!openedMail) return;
+    if (!openedMail)
+      openedMail = await logs.findOne({
+        where: { [Op.and]: [{ userMail: email }, { deleteId: campagneId }] },
+      });
+
+    if (!openedMail) return res.sendStatus(400);
     openedMail.opened = true;
     await openedMail.save();
   } catch (error) {

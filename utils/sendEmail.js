@@ -24,7 +24,7 @@ module.exports = async (name, to, subject, content, id) => {
   sendSmtpEmail.subject = subject;
   sendSmtpEmail.htmlContent = `<html><body>${content}
     <img
-      src="http://192.168.123.210:4000/track-open?email=${to}?id=${id}"
+      src="http://192.168.123.210:4000/stat/track-open?email=${to}&id=${id}"
       alt="Tracking Pixel"
       style="display: none; width: 1px; height: 1px"
     />
@@ -33,7 +33,6 @@ module.exports = async (name, to, subject, content, id) => {
         display: flex;
         width: 100%;
         margin-top: 30px;
-        margin-left: 150px;
         justify-content: center;
       "
     >
@@ -48,6 +47,7 @@ module.exports = async (name, to, subject, content, id) => {
             border: 2px solid rgba(117, 108, 108, 0.456);
             border-radius: 5px;
             cursor: pointer;
+            margin-left: 150px;
           "
         >
             <span
