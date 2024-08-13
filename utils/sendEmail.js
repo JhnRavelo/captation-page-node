@@ -23,10 +23,8 @@ module.exports = async (name, to, subject, content, id) => {
   sendSmtpEmail.to = [{ email: to, name: "Client" }];
   sendSmtpEmail.subject = subject;
   sendSmtpEmail.htmlContent = `<html><body>${content}
-    <p id="email-client" style="display: none">${to}</p>
-    <p id="campagne-entreprise" style="display: none">${id}</p>
     <img
-      src="https://3d.europ-alu.com/track_open?email=${to}?id=${id}?opened=true"
+      src="http://192.168.123.210:4000/track-open?email=${to}?id=${id}"
       alt="Tracking Pixel"
       style="display: none; width: 1px; height: 1px"
     />
@@ -35,6 +33,7 @@ module.exports = async (name, to, subject, content, id) => {
         display: flex;
         width: 100%;
         margin-top: 30px;
+        margin-left: 150px;
         justify-content: center;
       "
     >

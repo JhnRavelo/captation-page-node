@@ -339,4 +339,23 @@ const statGetAll = async (req, res) => {
   }
 };
 
-module.exports = { statAdd, statAddEmail, statGetAll };
+const statOpenedEmail = async (req, res) => {
+  try {
+    const email = req.query.email;
+    const campagneId = req.query.id;
+    
+    if (!email || !campagneId) return;
+    const openedMail = await logs.findOne({
+      where: { [Op.and]: [{ userMail: email }, { campagneId: campagneId }] },
+    });
+
+    if (!openedMail) return;
+    openedMail.opened = true;
+    await openedMail.save();
+  } catch (error) {
+    res.json({ success: false, message: "Erreur serveur ouvert email" });
+    console.log("ERROR STAT OPENED EMAIL", error);
+  }
+};
+
+module.exports = { statAdd, statAddEmail, statGetAll, statOpenedEmail };
