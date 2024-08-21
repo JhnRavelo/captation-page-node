@@ -157,7 +157,10 @@ const campagneDelete = async (req, res) => {
   const { id } = await req.params;
   try {
     if (!id) return res.json({ success: false, message: "Données non envoyé" });
-    const isCampagne = await campagnes.findOne({ where: { id: id } });
+    const isCampagne = await campagnes.findOne({
+      where: { id: id },
+      include: [{ model: entreprises }],
+    });
 
     if (!isCampagne)
       return res.json({ success: false, message: "Campagne non trouvé" });
@@ -186,7 +189,7 @@ const campagneDelete = async (req, res) => {
       { where: { campagneId: id } }
     );
     await stats.update(
-      { title: isCampagne.title, entrepriseId: isCampagne.entrepriseId },
+      { title: isCampagne.title, entreprise: isCampagne.entreprise.entreprise },
       { where: { campagneId: id } }
     );
     const result = await isCampagne.destroy();

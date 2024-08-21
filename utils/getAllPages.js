@@ -15,9 +15,8 @@ module.exports = async () => {
       titleColor: value.titleColor,
       titleBackgroundColor: value.titleBackgroundColor,
       sloganCampagne: value.slogan,
+      description: value.campagne.description,
       imgCampagne: value.img,
-      title: value.campagne.title,
-      scanNbr: 0,
       dateDebut: value.createdAt,
     };
   });

@@ -11,12 +11,15 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    entreprise: {
+      allowNull: true,
+      type: DataTypes.STRING, 
+    }
   });
 
   stats.associate = (models) => {
     stats.belongsTo(models.campagnes, { foreignKey: "campagneId" });
     stats.belongsTo(models.medias, { foreignKey: "mediaId" });
-    stats.belongsTo(models.entreprises, { foreignKey: "entrepriseId" });
   };
 
   return stats;

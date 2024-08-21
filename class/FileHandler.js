@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
+require("dotenv").config();
 
 class FileHandler {
   constructor() {
@@ -88,7 +89,7 @@ class FileHandler {
         let webpData;
         if (type !== "png") {
           webpData = await sharp(file.buffer).webp().toBuffer();
-        } else webpData = file.buffer
+        } else webpData = file.buffer;
         const { location } = this.createFile(
           file.originalname.split(".")[0],
           webpData,
