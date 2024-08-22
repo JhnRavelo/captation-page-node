@@ -86,13 +86,14 @@ const statGetAll = async (req, res) => {
         [sequelize.literal("YEAR(stats.createdAt)"), "year"],
         [sequelize.fn("COUNT", sequelize.col("stats.id")), "count"],
         "campagneId",
+        "entreprise",
       ],
       include: [
         { model: medias },
         { model: campagnes, include: [{ model: entreprises }] },
       ],
-      group: ["year", "mediaId", "entrepriseId"],
-      where: { mail: true, campagneId: { [Op.not]: null } },
+      group: ["year", "mediaId", "entrepriseId", "entreprise"],
+      where: { mail: true },
     });
 
     const nbrScanPerYears = await stats.findAll({
@@ -100,13 +101,13 @@ const statGetAll = async (req, res) => {
         [sequelize.literal("YEAR(stats.createdAt)"), "year"],
         [sequelize.fn("COUNT", sequelize.col("stats.id")), "count"],
         "campagneId",
+        "entreprise",
       ],
       include: [
         { model: medias },
         { model: campagnes, include: [{ model: entreprises }] },
       ],
-      group: ["year", "mediaId", "entrepriseId"],
-      where: { campagneId: { [Op.not]: null } },
+      group: ["year", "mediaId", "entrepriseId", "entreprise"],
     });
 
     const nbrMailPerYearPerCampagnes = await stats.findAll({
@@ -138,18 +139,19 @@ const statGetAll = async (req, res) => {
     });
 
     const nbrMailPerMonths = await stats.findAll({
-      where: { mail: true, campagneId: { [Op.not]: null } },
+      where: { mail: true },
       attributes: [
         [sequelize.literal("YEAR(stats.createdAt)"), "year"],
         [sequelize.fn("COUNT", sequelize.col("stats.id")), "count"],
         [sequelize.literal("MONTH(stats.createdAt)"), "month"],
         "campagneId",
+        "entreprise",
       ],
       include: [
         { model: medias },
         { model: campagnes, include: [{ model: entreprises }] },
       ],
-      group: ["year", "mediaId", "month", "entrepriseId"],
+      group: ["year", "mediaId", "month", "entrepriseId", "entreprise"],
     });
 
     const nbrScanPerMonths = await stats.findAll({
@@ -158,13 +160,13 @@ const statGetAll = async (req, res) => {
         [sequelize.fn("COUNT", sequelize.col("stats.id")), "count"],
         [sequelize.literal("MONTH(stats.createdAt)"), "month"],
         "campagneId",
+        "entreprise",
       ],
       include: [
         { model: medias },
         { model: campagnes, include: [{ model: entreprises }] },
       ],
-      group: ["year", "mediaId", "month", "entrepriseId"],
-      where: { campagneId: { [Op.not]: null } },
+      group: ["year", "mediaId", "month", "entrepriseId", "entreprise"],
     });
 
     const nbrMailPerMonthPerCampagnes = await stats.findAll({
@@ -255,30 +257,55 @@ const statGetAll = async (req, res) => {
         success: false,
         message: "Erreur récupération des statistiques",
       });
+
     const nbrMailPerYearStats = nbrMailPerYears.map((stat) => {
       const value = stat.dataValues;
-      return {
-        media: value.media.media,
-        entreprise: value.campagne.entreprise.entreprise,
-        count: value.count,
-        year: value.year,
-        id: value.campagneId,
-        dateDebut: value.year + "-1",
-        title: value.campagne.title,
-      };
-    });
+
+      if (value?.entreprise) {
+        return {
+          media: value.media.media,
+          entreprise: value.entreprise,
+          count: value.count,
+          year: value.year,
+          dateDebut: value.year + "-1",
+        }
+      }else if (value?.campagne?.entreprise?.entreprise) {
+        return {
+          media: value.media.media,
+          entreprise: value.campagne.entreprise.entreprise,
+          count: value.count,
+          year: value.year,
+          id: value.campagneId,
+          dateDebut: value.year + "-1",
+          title: value.campagne.title,
+        };
+      }else return undefined;
+    }).filter(item => item !== undefined);
+
     const nbrScanPerYearStats = nbrScanPerYears.map((stat) => {
       const value = stat.dataValues;
-      return {
-        media: value.media.media,
-        entreprise: value.campagne.entreprise.entreprise,
-        count: value.count,
-        year: value.year,
-        id: value.campagneId,
-        dateDebut: value.year + "-1",
-        title: value.campagne.title,
-      };
-    });
+
+      if (value?.entreprise) {
+        return {
+          media: value.media.media,
+          entreprise: value.entreprise,
+          count: value.count,
+          year: value.year,
+          dateDebut: value.year + "-1",
+        }
+      }else if (value?.campagne?.entreprise?.entreprise) {
+        return {
+          media: value.media.media,
+          entreprise: value.campagne.entreprise.entreprise,
+          count: value.count,
+          year: value.year,
+          id: value.campagneId,
+          dateDebut: value.year + "-1",
+          title: value.campagne.title,
+        };
+      }else return undefined;
+    }).filter(item => item !== undefined);
+
     const nbrMailPerYearPerCampagneStats = nbrMailPerYearPerCampagnes.map(
       (stat) => {
         const value = stat.dataValues;
@@ -309,30 +336,54 @@ const statGetAll = async (req, res) => {
     );
     const nbrMailPerMonthStats = nbrMailPerMonths.map((stat) => {
       const value = stat.dataValues;
-      return {
-        media: value.media.media,
-        entreprise: value.campagne.entreprise.entreprise,
-        count: value.count,
-        year: value.year,
-        id: value.campagneId,
-        dateDebut: value.year + "-1",
-        month: value.month,
-        title: value.campagne.title,
-      };
-    });
+
+      if (value?.entreprise) {
+        return {
+          media: value.media.media,
+          entreprise: value.entreprise,
+          count: value.count,
+          year: value.year,
+          dateDebut: value.year + "-1",
+          month: value.month,
+        };
+      }else if (value?.campagne?.entreprise?.entreprise) {
+        return {
+          media: value.media.media,
+          entreprise: value.campagne.entreprise.entreprise,
+          count: value.count,
+          year: value.year,
+          id: value.campagneId,
+          dateDebut: value.year + "-1",
+          month: value.month,
+          title: value.campagne.title,
+        };
+      }else return undefined;
+    }).filter(item => item !== undefined);
     const nbrScanPerMonthStats = nbrScanPerMonths.map((stat) => {
       const value = stat.dataValues;
-      return {
-        media: value.media.media,
-        entreprise: value.campagne.entreprise.entreprise,
-        count: value.count,
-        year: value.year,
-        id: value.campagneId,
-        dateDebut: value.year + "-1",
-        month: value.month,
-        title: value.campagne.title,
-      };
-    });
+
+      if (value?.entreprise) {
+        return {
+          media: value.media.media,
+          entreprise: value.entreprise,
+          count: value.count,
+          year: value.year,
+          dateDebut: value.year + "-1",
+          month: value.month,
+        };
+      }else if (value?.campagne?.entreprise?.entreprise) {
+        return {
+          media: value.media.media,
+          entreprise: value.campagne.entreprise.entreprise,
+          count: value.count,
+          year: value.year,
+          id: value.campagneId,
+          dateDebut: value.year + "-1",
+          month: value.month,
+          title: value.campagne.title,
+        };
+      }else return undefined;
+    }).filter(item => item !== undefined);
     const nbrMailPerMonthPerCampagneStats = nbrMailPerMonthPerCampagnes.map(
       (stat) => {
         const value = stat.dataValues;
