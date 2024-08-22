@@ -77,7 +77,7 @@ class FileHandler {
       name = fileName + date + ext;
       fileDir = this.createDirectory(filePath, 0);
       if (type == "public") {
-        const publicPath = path.join(fileDir, name).split("public/")[1];
+        const publicPath = path.join(fileDir, name).split("public")[1];
         location = `${process.env.SERVER_PATH}${publicPath.replace(
           /\\/g,
           "/"

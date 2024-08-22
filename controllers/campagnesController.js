@@ -4,6 +4,7 @@ const {
   logs,
   qrcodes,
   pages,
+  mails,
 } = require("../database/models");
 const { Op } = require("sequelize");
 const getAllCampagnes = require("../utils/getAllCampagnes");
@@ -12,6 +13,7 @@ const path = require("path");
 
 const pagePath = path.join(__dirname, "..", "public", "img");
 const qrCodePath = path.join(__dirname, "..", "public", "qrcode");
+const mailPath = path.join(__dirname, "..", "public", "mail");
 
 const campagneAdd = async (req, res) => {
   try {
@@ -129,16 +131,37 @@ const campagneUpdate = async (req, res) => {
 
 const campagneUpdateMail = async (req, res) => {
   try {
-    const { mailText, object, id } = await req.body;
+    const { mailText, object, id, idMail, title } = await req.body;
 
-    if (!mailText || !object)
+    if (!mailText || !object || !id || !idMail)
       return res.json({ success: false, message: "Contenu mail non envoyé" });
     const isCampagne = await campagnes.findOne({ where: { id: id } });
 
     if (!isCampagne)
       return res.json({ success: false, message: "Campagne non trouvé" });
-    isCampagne.set({ mailText, object });
-    const result = await isCampagne.save();
+    const isMail = await mails.findOne({ where: { id: idMail } });
+
+    if (
+      !req.files ||
+      (req.files.length > 0 && req.files[0].mimetype.split("/")[0] != "image")
+    )
+      return res.json({ success: false, message: "Pas d'image email reçu" });
+    const fileHandler = new FileHandler();
+    const img = await fileHandler.createImage(req, mailPath, "webp", "public");
+    let result;
+
+    if (isMail) {
+      isMail.set({ mailText, object, campagneId: id, img, title });
+      result = await isMail.save();
+    } else
+      result = await mails.create({
+        id: idMail,
+        mailText,
+        object,
+        campagneId: id,
+        img,
+        title,
+      });
 
     if (!result)
       return res.json({
