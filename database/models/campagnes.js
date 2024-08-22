@@ -21,14 +21,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    mailText: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-    object: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
   });
 
   campagnes.associate = (models) => {
@@ -42,6 +34,7 @@ module.exports = (sequelize, DataTypes) => {
     campagnes.hasOne(models.pages, { foreignKey: "campagneId" });
     campagnes.hasMany(models.logs, { foreignKey: "campagneId" });
     campagnes.hasMany(models.stats, { foreignKey: "campagneId" });
+    campagnes.hasMany(models.mails, { foreignKey: "campagneId" });
   };
 
   return campagnes;

@@ -55,7 +55,16 @@ class FileHandler {
   }
 
   createFile(fileName, data, ext, filePath, type) {
-    let name, fileDir, location;
+    let name = Buffer.from(
+        fileName
+          .slice(0, 30)
+          .replace(/,/g, "")
+          .replace(/public/g, "")
+          .replace(/ /g, "-"),
+        "latin1"
+      ).toString("utf8"),
+      fileDir,
+      location;
     const date = `-${this.getDate()}.`;
     if (!fs.existsSync(filePath)) {
       fs.mkdirSync(filePath);
@@ -68,7 +77,7 @@ class FileHandler {
       name = fileName + date + ext;
       fileDir = this.createDirectory(filePath, 0);
       if (type == "public") {
-        const publicPath = path.join(fileDir, name).split("public")[1];
+        const publicPath = path.join(fileDir, name).split("public/")[1];
         location = `${process.env.SERVER_PATH}${publicPath.replace(
           /\\/g,
           "/"
@@ -82,20 +91,24 @@ class FileHandler {
     return { fileDir, location, date };
   }
 
-  async createImage(req, imgPath, type) {
+  async createImage(req, imgPath, ext, type) {
     const galleryArray = new Array();
     const response = req.files.map(async (file) => {
       if (file.mimetype.split("/")[0] == "image") {
         let webpData;
-        if (type !== "png") {
+        if (ext == "webp") {
           webpData = await sharp(file.buffer).webp().toBuffer();
         } else webpData = file.buffer;
         const { location } = this.createFile(
           file.originalname.split(".")[0],
           webpData,
-          type,
+          ext == "webp"
+            ? ext
+            : file.originalname.split(".")[
+                file.originalname.split(".").length - 1
+              ],
           imgPath,
-          type == "png" ? type : "public"
+          type
         );
         galleryArray.push(location);
       }

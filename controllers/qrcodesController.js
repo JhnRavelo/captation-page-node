@@ -48,7 +48,7 @@ const qrCodeAdd = async (req, res) => {
       if (isEntreprise.logo) {
         fileHandler.deleteFileFromDatabase(isEntreprise.logo, logoPath, "logo");
       }
-      const filePath = await fileHandler.createImage(req, logoPath, "png");
+      const filePath = await fileHandler.createImage(req, logoPath, "png", "local");
       const fileName = await addQRCode(
         filePath,
         res,

@@ -29,7 +29,7 @@ const pageAdd = async (req, res) => {
         message: "Erreur ce campagne a déjà une page",
       });
     const fileHandler = new FileHandler();
-    const location = await fileHandler.createImage(req, pagePath, "webp");
+    const location = await fileHandler.createImage(req, pagePath, "webp", "public");
     const result = await pages.create({
       slogan: sloganCampagne,
       img: location,
@@ -96,7 +96,7 @@ const pageUpdate = async (req, res) => {
 
     if (req.files && req.files.length > 0) {
       fileHandler.deleteFileFromDatabase(pageUpdated.img, pagePath, "img");
-      const location = await fileHandler.createImage(req, pagePath, "webp");
+      const location = await fileHandler.createImage(req, pagePath, "webp", "public");
       pageUpdated.img = location;
     }
     pageUpdated.set({

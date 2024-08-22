@@ -8,6 +8,9 @@ const {
   campagneUpdateMail,
   campagneDelete,
 } = require("../controllers/campagnesController");
+const multer = require("multer");
+
+const memoryStorage = multer({ storage: multer.memoryStorage() });
 
 router
   .route("/")
@@ -15,7 +18,7 @@ router
   .get(verifyJWT, campagneGetAll)
   .put(verifyJWT, campagneUpdate);
 
-router.put("/mail", verifyJWT, campagneUpdateMail);
+router.put("/mail", verifyJWT, memoryStorage.any(), campagneUpdateMail);
 router.delete("/delete/:id", verifyJWT, campagneDelete);
 
 module.exports = router;
