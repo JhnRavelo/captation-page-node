@@ -38,7 +38,6 @@ module.exports = async (url, logoPath, filePath) => {
       "public"
     );
 
-    console.log("QR code with logo created successfully!");
     return location;
   } catch (error) {
     console.error("Error generating QR code with logo:", error);

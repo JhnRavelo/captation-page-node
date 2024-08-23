@@ -56,11 +56,11 @@ const qrCodeAdd = async (req, res) => {
         req,
         logoPath,
         "png",
-        "local"
+        "public",
       );
-      const fileName = await addQRCode(filePath, res, url, isMedia, campagnes);
-      isEntreprise.logo = "logo" + fileName;
+      isEntreprise.logo = filePath;
       await isEntreprise.save();
+      await addQRCode(filePath, res, url, isMedia, campagnes);
     } else await addQRCode(isEntreprise.logo, res, url, isMedia, campagnes);
   } catch (error) {
     res.json({ success: false, message: "Erreur d'ajout de QR Code" });

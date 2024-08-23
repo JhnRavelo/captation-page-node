@@ -7,7 +7,6 @@ const {
   mails,
 } = require("../database/models");
 const { Op } = require("sequelize");
-const sequelize = require("sequelize");
 const getAllCampagnes = require("../utils/getAllCampagnes");
 const FileHandler = require("../class/FileHandler");
 const path = require("path");

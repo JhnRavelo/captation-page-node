@@ -36,5 +36,4 @@ module.exports = async (
     });
   const datas = await getAllQRCodes();
   res.json({ datas, success: true });
-  return fileName;
 };
