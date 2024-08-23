@@ -1,7 +1,7 @@
 const SibApiV3Sdk = require("@sendinblue/client");
 require("dotenv").config();
 
-module.exports = async (name, to, subject, content, id) => {
+module.exports = async (name, to, subject, content, id, title, img, index) => {
   const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
   apiInstance.setApiKey(
     SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
@@ -22,7 +22,16 @@ module.exports = async (name, to, subject, content, id) => {
   };
   sendSmtpEmail.to = [{ email: to, name: "Client" }];
   sendSmtpEmail.subject = subject;
-  sendSmtpEmail.htmlContent = `<html><body>${content}
+  sendSmtpEmail.htmlContent = `<html><body>
+    ${title}
+    <div style="display: flex; align-items: center; justify-content: center;">
+      <img
+        src="http://europ-alu.com/wp-content/uploads/2024/07/MG_1935.jpg"
+        alt="Image pour la campagne"
+        width="100vw"
+      />
+    </div> 
+    ${content}
     <img
       src="http://192.168.123.210:4000/stat/track-open?email=${to}&id=${id}"
       alt="Tracking Pixel"
@@ -65,7 +74,9 @@ module.exports = async (name, to, subject, content, id) => {
 
   try {
     await apiInstance.sendTransacEmail(sendSmtpEmail);
-    console.log("Email envoyé à " + to);
+    console.log(
+      "Email envoyé à " + to + " campagne " + id + " pour l'email " + index
+    );
   } catch (error) {
     console.error("ERROR SEND EMAIL", error);
     throw error;

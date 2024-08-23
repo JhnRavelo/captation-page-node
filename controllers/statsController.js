@@ -4,6 +4,7 @@ const {
   logs,
   campagnes,
   entreprises,
+  mails,
 } = require("../database/models");
 const sequelize = require("sequelize");
 const { Op } = require("sequelize");
@@ -32,16 +33,15 @@ const statAdd = async (req, res) => {
 
 const statAddEmail = async (req, res) => {
   const { idCampagne, media, id, email } = await req.body;
-
   try {
     if (!idCampagne || !media || !email) return res.json({ success: false });
     const isMedia = await medias.findOne({ where: { url: media } });
-
+    
     if (!isMedia) return res.json({ success: false });
     const isEmail = await logs.findOne({
       where: { [Op.and]: [{ userMail: email }, { campagneId: idCampagne }] },
     });
-
+    
     if (isEmail) return res.json({ success: false });
 
     if (!id) {
@@ -59,19 +59,27 @@ const statAddEmail = async (req, res) => {
       mediaId: isMedia.id,
       userMail: email,
     });
-    const isCampagne = await campagnes.findOne({
-      where: { id: idCampagne },
-      include: [{ model: entreprises }],
+    const isCampagnes = await mails.findAll({
+      where: { campagneId: idCampagne },
+      include: [{ model: campagnes, include: [{ model: entreprises }] }],
     });
 
-    if (!isCampagne) return res.json({ success: false });
-    await sendEmail(
-      isCampagne.entreprise.entreprise,
-      email,
-      isCampagne.object,
-      isCampagne.mailText,
-      idCampagne
-    );
+    if (!isCampagnes || isCampagnes.length == 0)
+      return res.json({ success: false });
+    isCampagnes.map((mail, index) => {
+      setTimeout(async () => {
+        await sendEmail(
+          mail.campagne.entreprise.entreprise,
+          email,
+          mail.object,
+          mail.mailText,
+          idCampagne,
+          mail.title,
+          mail.img,
+          index,
+        );
+      }, mail.delay * 1 * 60 * 1000);
+    });
     res.json({ success: true });
   } catch (error) {
     res.json({ success: false });
@@ -258,53 +266,57 @@ const statGetAll = async (req, res) => {
         message: "Erreur récupération des statistiques",
       });
 
-    const nbrMailPerYearStats = nbrMailPerYears.map((stat) => {
-      const value = stat.dataValues;
+    const nbrMailPerYearStats = nbrMailPerYears
+      .map((stat) => {
+        const value = stat.dataValues;
 
-      if (value?.entreprise) {
-        return {
-          media: value.media.media,
-          entreprise: value.entreprise,
-          count: value.count,
-          year: value.year,
-          dateDebut: value.year + "-1",
-        }
-      }else if (value?.campagne?.entreprise?.entreprise) {
-        return {
-          media: value.media.media,
-          entreprise: value.campagne.entreprise.entreprise,
-          count: value.count,
-          year: value.year,
-          id: value.campagneId,
-          dateDebut: value.year + "-1",
-          title: value.campagne.title,
-        };
-      }else return undefined;
-    }).filter(item => item !== undefined);
+        if (value?.entreprise) {
+          return {
+            media: value.media.media,
+            entreprise: value.entreprise,
+            count: value.count,
+            year: value.year,
+            dateDebut: value.year + "-1",
+          };
+        } else if (value?.campagne?.entreprise?.entreprise) {
+          return {
+            media: value.media.media,
+            entreprise: value.campagne.entreprise.entreprise,
+            count: value.count,
+            year: value.year,
+            id: value.campagneId,
+            dateDebut: value.year + "-1",
+            title: value.campagne.title,
+          };
+        } else return undefined;
+      })
+      .filter((item) => item !== undefined);
 
-    const nbrScanPerYearStats = nbrScanPerYears.map((stat) => {
-      const value = stat.dataValues;
+    const nbrScanPerYearStats = nbrScanPerYears
+      .map((stat) => {
+        const value = stat.dataValues;
 
-      if (value?.entreprise) {
-        return {
-          media: value.media.media,
-          entreprise: value.entreprise,
-          count: value.count,
-          year: value.year,
-          dateDebut: value.year + "-1",
-        }
-      }else if (value?.campagne?.entreprise?.entreprise) {
-        return {
-          media: value.media.media,
-          entreprise: value.campagne.entreprise.entreprise,
-          count: value.count,
-          year: value.year,
-          id: value.campagneId,
-          dateDebut: value.year + "-1",
-          title: value.campagne.title,
-        };
-      }else return undefined;
-    }).filter(item => item !== undefined);
+        if (value?.entreprise) {
+          return {
+            media: value.media.media,
+            entreprise: value.entreprise,
+            count: value.count,
+            year: value.year,
+            dateDebut: value.year + "-1",
+          };
+        } else if (value?.campagne?.entreprise?.entreprise) {
+          return {
+            media: value.media.media,
+            entreprise: value.campagne.entreprise.entreprise,
+            count: value.count,
+            year: value.year,
+            id: value.campagneId,
+            dateDebut: value.year + "-1",
+            title: value.campagne.title,
+          };
+        } else return undefined;
+      })
+      .filter((item) => item !== undefined);
 
     const nbrMailPerYearPerCampagneStats = nbrMailPerYearPerCampagnes.map(
       (stat) => {
@@ -334,56 +346,60 @@ const statGetAll = async (req, res) => {
         };
       }
     );
-    const nbrMailPerMonthStats = nbrMailPerMonths.map((stat) => {
-      const value = stat.dataValues;
+    const nbrMailPerMonthStats = nbrMailPerMonths
+      .map((stat) => {
+        const value = stat.dataValues;
 
-      if (value?.entreprise) {
-        return {
-          media: value.media.media,
-          entreprise: value.entreprise,
-          count: value.count,
-          year: value.year,
-          dateDebut: value.year + "-1",
-          month: value.month,
-        };
-      }else if (value?.campagne?.entreprise?.entreprise) {
-        return {
-          media: value.media.media,
-          entreprise: value.campagne.entreprise.entreprise,
-          count: value.count,
-          year: value.year,
-          id: value.campagneId,
-          dateDebut: value.year + "-1",
-          month: value.month,
-          title: value.campagne.title,
-        };
-      }else return undefined;
-    }).filter(item => item !== undefined);
-    const nbrScanPerMonthStats = nbrScanPerMonths.map((stat) => {
-      const value = stat.dataValues;
+        if (value?.entreprise) {
+          return {
+            media: value.media.media,
+            entreprise: value.entreprise,
+            count: value.count,
+            year: value.year,
+            dateDebut: value.year + "-1",
+            month: value.month,
+          };
+        } else if (value?.campagne?.entreprise?.entreprise) {
+          return {
+            media: value.media.media,
+            entreprise: value.campagne.entreprise.entreprise,
+            count: value.count,
+            year: value.year,
+            id: value.campagneId,
+            dateDebut: value.year + "-1",
+            month: value.month,
+            title: value.campagne.title,
+          };
+        } else return undefined;
+      })
+      .filter((item) => item !== undefined);
+    const nbrScanPerMonthStats = nbrScanPerMonths
+      .map((stat) => {
+        const value = stat.dataValues;
 
-      if (value?.entreprise) {
-        return {
-          media: value.media.media,
-          entreprise: value.entreprise,
-          count: value.count,
-          year: value.year,
-          dateDebut: value.year + "-1",
-          month: value.month,
-        };
-      }else if (value?.campagne?.entreprise?.entreprise) {
-        return {
-          media: value.media.media,
-          entreprise: value.campagne.entreprise.entreprise,
-          count: value.count,
-          year: value.year,
-          id: value.campagneId,
-          dateDebut: value.year + "-1",
-          month: value.month,
-          title: value.campagne.title,
-        };
-      }else return undefined;
-    }).filter(item => item !== undefined);
+        if (value?.entreprise) {
+          return {
+            media: value.media.media,
+            entreprise: value.entreprise,
+            count: value.count,
+            year: value.year,
+            dateDebut: value.year + "-1",
+            month: value.month,
+          };
+        } else if (value?.campagne?.entreprise?.entreprise) {
+          return {
+            media: value.media.media,
+            entreprise: value.campagne.entreprise.entreprise,
+            count: value.count,
+            year: value.year,
+            id: value.campagneId,
+            dateDebut: value.year + "-1",
+            month: value.month,
+            title: value.campagne.title,
+          };
+        } else return undefined;
+      })
+      .filter((item) => item !== undefined);
     const nbrMailPerMonthPerCampagneStats = nbrMailPerMonthPerCampagnes.map(
       (stat) => {
         const value = stat.dataValues;
