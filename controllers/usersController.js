@@ -142,9 +142,9 @@ const userEditProfile = async (req, res) => {
 const userEditAvatar = async (req, res) => {
   try {
     if (
-      !req.files ||
+      req.files.length == 0 ||
       (req.files.length > 0 &&
-        req.files[0].mimetype.split("/")[0] == "image") ||
+        req.files[0].mimetype.split("/")[0] != "image") ||
       !req.user
     )
       return res.json({ success: false, message: "Image non trouvé" });

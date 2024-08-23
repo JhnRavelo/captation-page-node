@@ -7,9 +7,11 @@ const {
   mails,
 } = require("../database/models");
 const { Op } = require("sequelize");
+const sequelize = require("sequelize");
 const getAllCampagnes = require("../utils/getAllCampagnes");
 const FileHandler = require("../class/FileHandler");
 const path = require("path");
+const getAllMails = require("../utils/getAllMails");
 
 const pagePath = path.join(__dirname, "..", "public", "img");
 const qrCodePath = path.join(__dirname, "..", "public", "qrcode");
@@ -131,7 +133,7 @@ const campagneUpdate = async (req, res) => {
 
 const campagneUpdateMail = async (req, res) => {
   try {
-    const { mailText, object, id, idMail, title } = await req.body;
+    const { mailText, object, id, idMail, title, delay } = await req.body;
 
     if (!mailText || !object || !id || !idMail)
       return res.json({ success: false, message: "Contenu mail non envoyé" });
@@ -142,16 +144,35 @@ const campagneUpdateMail = async (req, res) => {
     const isMail = await mails.findOne({ where: { id: idMail } });
 
     if (
-      !req.files ||
-      (req.files.length > 0 && req.files[0].mimetype.split("/")[0] != "image")
+      (req.files.length == 0 && !isMail) ||
+      (req.files.length > 0 &&
+        req.files[0].mimetype.split("/")[0] != "image" &&
+        !isMail)
     )
       return res.json({ success: false, message: "Pas d'image email reçu" });
     const fileHandler = new FileHandler();
-    const img = await fileHandler.createImage(req, mailPath, "webp", "public");
-    let result;
+    let result, img;
+
+    if (
+      req?.files &&
+      req.files.length > 0 &&
+      req.files[0].mimetype.split("/")[0] == "image"
+    ) {
+      img = await fileHandler.createImage(req, mailPath, "webp", "public");
+      if (isMail && isMail?.img) {
+        fileHandler.deleteFileFromDatabase(isMail.img, mailPath, "mail");
+      }
+    }
 
     if (isMail) {
-      isMail.set({ mailText, object, campagneId: id, img, title });
+      isMail.set({
+        mailText,
+        object,
+        campagneId: id,
+        img: img ? img : isMail.img,
+        title,
+        delay: delay ? delay : "",
+      });
       result = await isMail.save();
     } else
       result = await mails.create({
@@ -159,8 +180,9 @@ const campagneUpdateMail = async (req, res) => {
         mailText,
         object,
         campagneId: id,
-        img,
+        img: img ? img : "",
         title,
+        delay: delay ? delay : "",
       });
 
     if (!result)
@@ -168,11 +190,21 @@ const campagneUpdateMail = async (req, res) => {
         success: false,
         message: "Campagne email non modifié",
       });
-    const datas = await getAllCampagnes();
+    const datas = await getAllMails();
     res.json({ datas, message: "Campagne email modifié", success: true });
   } catch (error) {
     res.json({ success: false, message: "Erreur serveur" });
     console.log("ERROR UPDATE MAIL", error);
+  }
+};
+
+const campagneGetMail = async (req, res) => {
+  try {
+    const datas = await getAllMails();
+    res.json({ success: true, datas });
+  } catch (error) {
+    res.json({ success: false, message: "Erreur ajout d'email campagne" });
+    console.log("ERROR CAMPAGNE ADD EMAIL", error);
   }
 };
 
@@ -235,4 +267,5 @@ module.exports = {
   campagneUpdate,
   campagneUpdateMail,
   campagneDelete,
+  campagneGetMail,
 };

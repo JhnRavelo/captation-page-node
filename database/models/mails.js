@@ -15,12 +15,16 @@ module.exports = (sequelize, Datatypes) => {
     },
     img: {
       type: Datatypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     mailText: {
       type: Datatypes.TEXT,
       allowNull: false,
     },
+    delay: {
+      type: Datatypes.INTEGER,
+      allowNull: true,
+    }
   });
 
   mails.associate = (models) => {

@@ -7,6 +7,7 @@ const {
   campagneUpdate,
   campagneUpdateMail,
   campagneDelete,
+  campagneGetMail,
 } = require("../controllers/campagnesController");
 const multer = require("multer");
 
@@ -19,6 +20,7 @@ router
   .put(verifyJWT, campagneUpdate);
 
 router.put("/mail", verifyJWT, memoryStorage.any(), campagneUpdateMail);
+router.get("/mail", verifyJWT, campagneGetMail);
 router.delete("/delete/:id", verifyJWT, campagneDelete);
 
 module.exports = router;

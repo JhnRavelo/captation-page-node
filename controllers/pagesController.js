@@ -16,8 +16,8 @@ const pageAdd = async (req, res) => {
         message: "Erreur données manquant pour l'ajout de page",
       });
     if (
-      !req.files ||
-      (req.files.length > 0 && req.files[0].mimetype.split("/")[0] == "image")
+      req.files.length == 0 ||
+      (req.files.length > 0 && req.files[0].mimetype.split("/")[0] != "image")
     )
       return res.json({ success: false, message: "Pas d'image campagne reçu" });
     const isPage = await pages.findOne({ where: { campagneId: campagnes } });
@@ -98,7 +98,11 @@ const pageUpdate = async (req, res) => {
       });
     const fileHandler = new FileHandler();
 
-    if (req.files && req.files.length > 0) {
+    if (
+      req?.files &&
+      req.files.length > 0 &&
+      req.files[0].mimetype.split("/")[0] == "image"
+    ) {
       fileHandler.deleteFileFromDatabase(pageUpdated.img, pagePath, "img");
       const location = await fileHandler.createImage(
         req,

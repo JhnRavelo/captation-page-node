@@ -42,30 +42,26 @@ const qrCodeAdd = async (req, res) => {
       "/" +
       isMedia.url;
 
-    if (req.files && req.files.length > 0) {
+    if (
+      req?.files &&
+      req.files.length > 0 &&
+      req.files[0].mimetype.split("/")[0] == "image"
+    ) {
       const fileHandler = new FileHandler();
 
       if (isEntreprise.logo) {
         fileHandler.deleteFileFromDatabase(isEntreprise.logo, logoPath, "logo");
       }
-      const filePath = await fileHandler.createImage(req, logoPath, "png", "local");
-      const fileName = await addQRCode(
-        filePath,
-        res,
-        url,
-        isMedia,
-        campagnes
+      const filePath = await fileHandler.createImage(
+        req,
+        logoPath,
+        "png",
+        "local"
       );
+      const fileName = await addQRCode(filePath, res, url, isMedia, campagnes);
       isEntreprise.logo = "logo" + fileName;
       await isEntreprise.save();
-    } else
-      await addQRCode(
-        isEntreprise.logo,
-        res,
-        url,
-        isMedia,
-        campagnes
-      );
+    } else await addQRCode(isEntreprise.logo, res, url, isMedia, campagnes);
   } catch (error) {
     res.json({ success: false, message: "Erreur d'ajout de QR Code" });
     console.log("ERROR ADD QR CODE", error);
