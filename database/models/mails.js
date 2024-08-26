@@ -24,11 +24,14 @@ module.exports = (sequelize, Datatypes) => {
     delay: {
       type: Datatypes.INTEGER,
       allowNull: true,
-    }
+    },
   });
 
   mails.associate = (models) => {
-    mails.belongsTo(models.campagnes, { foreignKey: "campagneId" });
+    mails.belongsTo(models.campagnes, {
+      foreignKey: "campagneId",
+      onDelete: "CASCADE",
+    });
   };
 
   return mails;

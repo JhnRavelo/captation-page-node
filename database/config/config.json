@@ -4,14 +4,26 @@
     "password": null,
     "database": "campagne-generator",
     "host": "127.0.0.1",
-    "dialect": "mysql"
+    "dialect": "mysql",
+    "dialectOptions": {
+      "dateStrings": true,
+      "typeCast": true,
+      "timezone": "+03:00"
+    },
+    "timezone": "+03:00"
   },
   "test": {
     "username": "root",
     "password": null,
     "database": "demo-campagne-generator",
     "host": "127.0.0.1",
-    "dialect": "mysql"
+    "dialect": "mysql",
+    "dialectOptions": {
+      "dateStrings": true,
+      "typeCast": true,
+      "timezone": "+03:00"
+    },
+    "timezone": "+03:00"
   },
   "production": {
     "username": "root",

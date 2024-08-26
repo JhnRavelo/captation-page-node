@@ -494,7 +494,7 @@ const statOpenedEmail = async (req, res) => {
   try {
     const email = req.query.email;
     const campagneId = req.query.id;
-    console.log(email, campagneId);
+
     if (!email || !campagneId) return res.sendStatus(400);
     let openedMail = await logs.findOne({
       where: { [Op.and]: [{ userMail: email }, { campagneId: campagneId }] },

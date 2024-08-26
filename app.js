@@ -3,14 +3,67 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const db = require("./database/models");
+const { Op } = require("sequelize");
 require("dotenv").config();
 const app = express();
 const path = require("path");
+const sendEmail = require("./utils/sendEmail");
 
 db.sequelize.options.logging = false;
 db.sequelize.sync({ alter: true }).then(() => {
   app.listen(process.env.SERVER_PORT, async () => {
-    console.log(`http://localhost:${process.env.SERVER_PORT}`);
+    try {
+      const userMails = await db.logs.findAll({
+        where: { userMail: { [Op.not]: null }, campagneId: { [Op.not]: null } },
+      });
+      const allMails = await db.mails.findAll({
+        where: { campagneId: { [Op.not]: null } },
+        include: [
+          { model: db.campagnes, include: [{ model: db.entreprises }] },
+        ],
+      });
+
+      if (userMails) {
+        userMails.map((mail) => {
+          const nowDate = new Date();
+          const valueMail = mail.dataValues;
+          const differenceDate = nowDate - new Date(valueMail.createdAt);
+
+          if (differenceDate && differenceDate >= 0) {
+            const filterMails = allMails.filter(
+              (user) => user.dataValues.campagneId == valueMail.campagneId
+            );
+
+            if (filterMails && filterMails?.length > 0) {
+              filterMails.map((filterMail, index) => {
+                const campagneMail = filterMail.dataValues;
+                const differenceCampagne =
+                  campagneMail.delay * 1000 * 60 * 60 * 24 -
+                  (differenceDate + 20 * 1000);
+
+                if (differenceCampagne >= 0) {
+                  setTimeout(async () => {
+                    await sendEmail(
+                      campagneMail.campagne.entreprise.entreprise,
+                      mail.userMail,
+                      campagneMail.object,
+                      campagneMail.mailText,
+                      campagneMail.campagneId,
+                      campagneMail.title,
+                      campagneMail.img,
+                      index
+                    );
+                  }, differenceCampagne);
+                }
+              });
+            }
+          }
+        });
+      }
+      console.log(`http://localhost:${process.env.SERVER_PORT}`);
+    } catch (error) {
+      console.log("ERROR CHECK SEND EMAIL", error);
+    }
   });
 });
 
