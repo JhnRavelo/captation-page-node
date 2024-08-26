@@ -78,10 +78,9 @@ class FileHandler {
       fileDir = this.createDirectory(filePath, 0);
       if (type == "public") {
         const publicPath = path.join(fileDir, name).split("public")[1];
-        location = `${process.env.SERVER_PATH}${publicPath.replace(
-          /\\/g,
-          "/"
-        )}`;
+        location = `${
+          process.env?.SERVER_PATH ? process.env.SERVER_PATH : ""
+        }${publicPath.replace(/\\/g, "/")}`;
       } else location = path.join(fileDir, name);
     }
     fs.writeFileSync(path.join(fileDir, name), data, {

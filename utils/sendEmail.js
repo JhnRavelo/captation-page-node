@@ -24,11 +24,19 @@ module.exports = async (name, to, subject, content, id, title, img, index) => {
   sendSmtpEmail.subject = subject;
   sendSmtpEmail.htmlContent = `<html><body>
     ${title}
-    <div style="display: flex; align-items: center; justify-content: center;">
+    <div 
+      style="
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        width="100vw"; 
+        padding="20px"
+      "
+    >
       <img
         src="http://europ-alu.com/wp-content/uploads/2024/07/MG_1935.jpg"
         alt="Image pour la campagne"
-        width="100vw"
+        width="100%"
       />
     </div> 
     ${content}
@@ -56,7 +64,7 @@ module.exports = async (name, to, subject, content, id, title, img, index) => {
             border: 2px solid rgba(117, 108, 108, 0.456);
             border-radius: 5px;
             cursor: pointer;
-            margin-left: 150px;
+            margin-left: 45%;
           "
         >
             <span
