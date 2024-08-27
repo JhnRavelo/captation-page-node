@@ -78,7 +78,7 @@ const statAddEmail = async (req, res) => {
           mail.img,
           index,
         );
-      }, mail.delay * 1 * 60 * 1000);
+      }, mail.delay * 24 * 60 * 60 * 1000);
     });
     res.json({ success: true });
   } catch (error) {
