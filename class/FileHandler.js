@@ -1,7 +1,25 @@
 const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
+const fsExtra = require("fs-extra");
+const AdmZip = require("adm-zip");
+const archiver = require("archiver");
 require("dotenv").config();
+const generateDataJWT = require("../utils/generateDataJWT");
+const generateRandomText = require("../utils/generateRandomText");
+const createUserViaTmp = require("../utils/createUserViaTmpFile");
+const importFileToDatabase = require("../utils/importFileToDatabase");
+
+let zipEncryptedRegistered = false;
+
+if (!zipEncryptedRegistered) {
+    try {
+        archiver.registerFormat("zip-encrypted", require("archiver-zip-encrypted"));
+        zipEncryptedRegistered = true;
+    } catch (error) {
+        console.error("Erreur lors de l'enregistrement du format zip-encrypted :", error.message);
+    }
+}
 
 class FileHandler {
   constructor() {
@@ -128,6 +146,63 @@ class FileHandler {
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
+  }
+
+  async compressZip(
+    fileName,
+    filePath,
+    directory,
+    outputPath,
+    outputName,
+    res
+  ) {
+    const contentInPathExport = fs.readdirSync(outputPath);
+
+    if (contentInPathExport && contentInPathExport.length > 0) {
+      contentInPathExport.map(async (content) => {
+        await fsExtra.remove(path.join(outputPath, content));
+      });
+    }
+    const output = fs.createWriteStream(
+      path.join(outputPath, outputName + ".zip")
+    );
+    const archive = archiver.create("zip-encrypted", {
+      zlib: { level: 8 },
+      encryptionMethod: process.env.ZIP_METHOD,
+      password: process.env.ZIP_PASSWORD,
+    });
+    output.on("close", function () {
+      console.log(archive.pointer() + " total bytes");
+      return res.download(output.path);
+    });
+    output.on("end", function () {
+      console.log("Erreur compression, les données ont été drainé");
+      return res.json({
+        success: false,
+        message: "Erreur compression, les données ont été drainé",
+      });
+    });
+    archive.on("warning", function (err) {
+      console.log(err);
+      return res.json({
+        success: false,
+        message: "Erreur compression, Attention problème de système de fichier",
+      });
+    });
+    archive.on("error", function (err) {
+      console.log(err);
+      return res.json({ success: false, message: "Erreur compression" });
+    });
+    archive.pipe(output);
+
+    if (fs.existsSync(filePath)) {
+      archive.file(filePath, { name: fileName });
+    }
+
+    if (fs.existsSync(directory)) {
+      archive.directory(directory, false);
+    }
+    archive.finalize();
   }
 }
 
