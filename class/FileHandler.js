@@ -5,20 +5,20 @@ const fsExtra = require("fs-extra");
 const AdmZip = require("adm-zip");
 const archiver = require("archiver");
 require("dotenv").config();
-const generateDataJWT = require("../utils/generateDataJWT");
-const generateRandomText = require("../utils/generateRandomText");
-const createUserViaTmp = require("../utils/createUserViaTmpFile");
 const importFileToDatabase = require("../utils/importFileToDatabase");
 
 let zipEncryptedRegistered = false;
 
 if (!zipEncryptedRegistered) {
-    try {
-        archiver.registerFormat("zip-encrypted", require("archiver-zip-encrypted"));
-        zipEncryptedRegistered = true;
-    } catch (error) {
-        console.error("Erreur lors de l'enregistrement du format zip-encrypted :", error.message);
-    }
+  try {
+    archiver.registerFormat("zip-encrypted", require("archiver-zip-encrypted"));
+    zipEncryptedRegistered = true;
+  } catch (error) {
+    console.error(
+      "Erreur lors de l'enregistrement du format zip-encrypted :",
+      error.message
+    );
+  }
 }
 
 class FileHandler {
@@ -156,13 +156,6 @@ class FileHandler {
     outputName,
     res
   ) {
-    const contentInPathExport = fs.readdirSync(outputPath);
-
-    if (contentInPathExport && contentInPathExport.length > 0) {
-      contentInPathExport.map(async (content) => {
-        await fsExtra.remove(path.join(outputPath, content));
-      });
-    }
     const output = fs.createWriteStream(
       path.join(outputPath, outputName + ".zip")
     );
@@ -203,6 +196,70 @@ class FileHandler {
       archive.directory(directory, false);
     }
     archive.finalize();
+  }
+
+  extractZipAsync(zipFilePath, destinationPath) {
+    return new Promise((resolve, reject) => {
+      const zip = new AdmZip(zipFilePath);
+      try {
+        zip.extractAllTo(
+          destinationPath,
+          true,
+          false,
+          process.env.ZIP_PASSWORD
+        );
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  async decompressZip(zipPath, dirPath, action) {
+    try {
+      const publicPath = path.join(__dirname, "..", "public");
+      const outputPath = path.join(dirPath, "/import");
+      await this.extractZipAsync(zipPath, outputPath);
+      let result = {
+        success: true,
+        message: "Succès de l'importation de la base de données",
+      };
+      const files = fs.readdirSync(outputPath);
+      await Promise.all(
+        files.map(async (file) => {
+          const filePath = path.join(outputPath, file);
+          if (file.includes(".sequelize")) {
+            const isImport = await importFileToDatabase(filePath);
+            if (!isImport) {
+              result.success = false;
+              result.message = "Importation de la base de données échouée";
+            }
+          } else if (!file.includes(".zip")) {
+            const assetDIr = path.join(publicPath, file);
+            if (fs.existsSync(assetDIr)) {
+              await fsExtra.remove(assetDIr);
+            }
+            await fsExtra.copy(filePath, assetDIr);
+          }
+          return result;
+        })
+      );
+      if (action != "restore") {
+        fs.unlinkSync(zipPath);
+      }
+      fsExtra.remove(outputPath);
+      return result;
+    } catch (error) {
+      console.log("DECOMPRESS ERROR", error);
+      if (action != "restore") {
+        fs.unlinkSync(zipPath);
+      }
+      fsExtra.remove(outputPath);
+      return {
+        success: false,
+        message: "Erreur lors de l'extraction du fichier ZIP",
+      };
+    }
   }
 }
 
