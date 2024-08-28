@@ -103,6 +103,9 @@ app.use("/stat", statsRouter);
 const logsRouter = require("./routers/logsRouter");
 app.use("/log", logsRouter);
 
+const datasRouter = require("./routers/datasRouter");
+app.use("/data", datasRouter);
+
 // app.use((req, res, next) => {
 //   res.sendFile(path.join(__dirname, "public", "index.html"));
 // });
