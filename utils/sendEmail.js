@@ -11,13 +11,7 @@ module.exports = async (name, to, subject, content, id, title, img, index) => {
   const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
   sendSmtpEmail.sender = {
-    email: `${
-      name == "Alu"
-        ? process.env.EMAIL_ALU_SENDER
-        : name == "Vertec"
-        ? process.env.EMAIL_VERTEC_SENDER
-        : process.env.EMAIL_EUROP_SENDER
-    }`,
+    email: `${name.replace(" ", "-").toLowerCase() + "@gmail.com"}`,
     name: name + " Madagascar",
   };
   sendSmtpEmail.to = [{ email: to, name: "Client" }];

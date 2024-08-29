@@ -1,3 +1,4 @@
 {
-    "ext": ".js, .html, .css, .jsx"
+    "ext": ".js",
+    "ignore": ["./database/import/", "./public/"]
 }

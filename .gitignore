@@ -6,3 +6,7 @@ routers/refreshRouter.js
 public
 merge.env.txt
 separate.env.txt
+cryptoRandom.js
+asset
+database/export
+database/import

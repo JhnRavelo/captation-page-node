@@ -137,7 +137,7 @@ const qrCodeDownload = async (req, res) => {
   const { img } = await req.body;
 
   if (!img)
-    return res.json({ success: false, message: "Erreur de téléchargent" });
+    return res.json({ success: false, message: "Erreur de téléchargement" });
   try {
     const fileName =
       img.split("qrcode").length > 2

@@ -5,6 +5,7 @@ const db = require("../database/models");
 const path = require("path");
 const generateRandomText = require("../utils/generateRandomText");
 const fs = require("fs");
+const fsExtra = require("fs-extra");
 
 const fileHandler = new FileHandler();
 const exportPath = path.join(__dirname, "..", "database", "export");
@@ -55,7 +56,7 @@ const exportData = async (req, res) => {
           publicPath,
           exportPath,
           "export",
-          res,
+          res
         );
       })
       .catch((err) => {
@@ -74,4 +75,32 @@ const exportData = async (req, res) => {
   }
 };
 
-module.exports = { exportData };
+const importData = async (req, res) => {
+  try {
+    if (!req.files || req.files.length == 0)
+      return res.json({ success: false, message: "Aucun fichier envoyer" });
+
+    if (!req.files[0].originalname.includes(".zip"))
+      return res.json({
+        success: false,
+        message: "Le fichier doit être un archive ZIP",
+      });
+    const { location, fileDir } = fileHandler.createFile(
+      "import",
+      req.files[0].buffer,
+      "zip",
+      importPath,
+      "tmpApp"
+    );
+    const result = await fileHandler.decompressZip(location, fileDir, "import");
+    res.json(result);
+  } catch (error) {
+    console.log("ERROR IMPORT DATABASE", error);
+    res.json({
+      success: false,
+      message: "Erreur dans l'importation du base de données",
+    });
+  }
+};
+
+module.exports = { exportData, importData };
