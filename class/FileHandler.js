@@ -6,6 +6,9 @@ const AdmZip = require("adm-zip");
 const archiver = require("archiver");
 require("dotenv").config();
 const importFileToDatabase = require("../utils/importFileToDatabase");
+const generateDataJWT = require("../utils/generateDataJWT");
+const generateRandomText = require("../utils/generateRandomText");
+const createUserViaTmpFile = require("../utils/createUserViaTmpFile");
 
 let zipEncryptedRegistered = false;
 
@@ -259,6 +262,35 @@ class FileHandler {
         success: false,
         message: "Erreur lors de l'extraction du fichier ZIP",
       };
+    }
+  }
+
+  generateUser(user, filePath) {
+    if (user && user.length) {
+      const stringDataUser = generateDataJWT(user);
+      fs.readdir(filePath, (err, files) => {
+        if (err) return console.log("ERROR READ DIRECTORY", err);
+        const tempFile = files.find((item) => item.includes(".tmp"));
+        if (tempFile) {
+          fs.unlinkSync(path.join(filePath, tempFile));
+        }
+        const { location } = this.createFile(
+          generateRandomText(10),
+          stringDataUser,
+          "tmp",
+          filePath,
+          "tmpApp"
+        );
+        if (!location) return console.log("ERROR CREATE FILE");
+      });
+    } else {
+      fs.readdir(filePath, async (err, files) => {
+        if (err) return console.log("ERROR READ DIRECTORY", err);
+        const tempFile = files.find((item) => item.includes(".tmp"));
+        if (tempFile) {
+          await createUserViaTmpFile(path.join(filePath, tempFile));
+        }
+      });
     }
   }
 }

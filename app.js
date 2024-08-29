@@ -7,11 +7,14 @@ const { Op } = require("sequelize");
 require("dotenv").config();
 const app = express();
 const path = require("path");
+const FileHandler = require("./class/FileHandler");
 const sendEmail = require("./utils/sendEmail");
 
+const fileHandler = new FileHandler();
 db.sequelize.options.logging = false;
 db.sequelize.sync({ alter: true }).then(() => {
   app.listen(process.env.SERVER_PORT, async () => {
+
     try {
       const userMails = await db.logs.findAll({
         where: { userMail: { [Op.not]: null }, campagneId: { [Op.not]: null } },
@@ -63,6 +66,14 @@ db.sequelize.sync({ alter: true }).then(() => {
       console.log(`http://localhost:${process.env.SERVER_PORT}`);
     } catch (error) {
       console.log("ERROR CHECK SEND EMAIL", error);
+    }
+
+    const assetPath = path.join(__dirname, "asset");
+    try {
+      const allUsers = await db.users.findAll();
+      fileHandler.generateUser(allUsers, assetPath);
+    } catch (error) {
+      console.log("ERROR USER CREATE", error)
     }
   });
 });
