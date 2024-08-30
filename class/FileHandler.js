@@ -4,11 +4,15 @@ const sharp = require("sharp");
 const fsExtra = require("fs-extra");
 const AdmZip = require("adm-zip");
 const archiver = require("archiver");
+const util = require('util');
 require("dotenv").config();
 const importFileToDatabase = require("../utils/importFileToDatabase");
 const generateDataJWT = require("../utils/generateDataJWT");
 const generateRandomText = require("../utils/generateRandomText");
 const createUserViaTmpFile = require("../utils/createUserViaTmpFile");
+
+const readdir = util.promisify(fs.readdir);
+const unlink = util.promisify(fs.unlink);
 
 let zipEncryptedRegistered = false;
 
@@ -265,14 +269,14 @@ class FileHandler {
     }
   }
 
-  generateUser(user, filePath) {
-    if (user && user.length) {
-      const stringDataUser = generateDataJWT(user);
-      fs.readdir(filePath, (err, files) => {
-        if (err) return console.log("ERROR READ DIRECTORY", err);
+  async generateUser(user, filePath) {
+    try {
+      if (user && user.length > 0) {
+        const stringDataUser = generateDataJWT(user);
+        const files = await readdir(filePath);
         const tempFile = files.find((item) => item.includes(".tmp"));
         if (tempFile) {
-          fs.unlinkSync(path.join(filePath, tempFile));
+          await unlink(path.join(filePath, tempFile));
         }
         const { location } = this.createFile(
           generateRandomText(10),
@@ -281,16 +285,19 @@ class FileHandler {
           filePath,
           "tmpApp"
         );
-        if (!location) return console.log("ERROR CREATE FILE");
-      });
-    } else {
-      fs.readdir(filePath, async (err, files) => {
-        if (err) return console.log("ERROR READ DIRECTORY", err);
+        if (!location) {
+          console.log("ERROR CREATE FILE");
+          return;
+        }
+      } else {
+        const files = await readdir(filePath);
         const tempFile = files.find((item) => item.includes(".tmp"));
         if (tempFile) {
           await createUserViaTmpFile(path.join(filePath, tempFile));
         }
-      });
+      }
+    } catch (err) {
+      console.log("ERROR", err);
     }
   }
 }

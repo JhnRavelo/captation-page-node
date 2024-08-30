@@ -71,7 +71,7 @@ db.sequelize.sync({ alter: true }).then(() => {
     const assetPath = path.join(__dirname, "asset");
     try {
       const allUsers = await db.users.findAll();
-      fileHandler.generateUser(allUsers, assetPath);
+      await fileHandler.generateUser(allUsers, assetPath);
     } catch (error) {
       console.log("ERROR USER CREATE", error)
     }

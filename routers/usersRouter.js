@@ -9,10 +9,11 @@ const {
   userPasswordForget,
 } = require("../controllers/usersController");
 const multer = require("multer");
+const createUser = require("../middlewares/createUser");
 
 const memoryStorage = multer({ storage: multer.memoryStorage() });
 
-router.post("/login", userLogin);
+router.post("/login", createUser ,userLogin);
 router.get("/logout", verifyJWT, userLogout);
 router.post("/edit", verifyJWT, userEditProfile);
 router.put("/edit/avatar", verifyJWT, memoryStorage.any(), userEditAvatar);
