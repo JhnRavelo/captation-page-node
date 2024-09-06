@@ -277,6 +277,24 @@ const statGetAll = async (req, res) => {
       },
     });
 
+    const nbrMailOpenedPerMonthPerCampagnes = await logs.findAll({
+      attributes: [
+        [sequelize.literal("YEAR(logs.createdAt)"), "year"],
+        [sequelize.fn("COUNT", sequelize.col("logs.id")), "count"],
+        [sequelize.literal("MONTH(logs.createdAt)"), "month"],
+        "entrepriseId",
+        "campagneId",
+      ],
+      include: [
+        { model: medias },
+        { model: campagnes, include: [{ model: entreprises }] },
+      ],
+      group: ["year", "mediaId", "entrepriseId", "campagneId", "month"],
+      where: {
+        [Op.and]: [{ campagneId: { [Op.not]: null } }, { opened: true }],
+      },
+    });
+
     if (
       !nbrMailPerYears ||
       !nbrScanPerYears ||
@@ -519,6 +537,20 @@ const statGetAll = async (req, res) => {
         };
       })
       .filter((stat) => stat !== undefined);
+    const nbrMailOpenedPerMonthPerCampagneStats = nbrMailOpenedPerMonthPerCampagnes
+      .map((stat) => {
+        const value = stat.dataValues;
+
+        return {
+          media: value.media.media,
+          entreprise: value.campagne.entreprise.entreprise,
+          count: value.count,
+          year: value.year,
+          id: value.campagneId,
+          dateDebut: value.year + "-1",
+        };
+      })
+      .filter((stat) => stat !== undefined);
 
     res.json({
       nbrMailPerYearStats,
@@ -533,7 +565,7 @@ const statGetAll = async (req, res) => {
       nbrMailPerYearPerCampagneStats,
       nbrScanPerYearPerCampagneStats,
       nbrMailOpenedPerCampagneStats,
-
+      nbrMailOpenedPerMonthPerCampagneStats,
     });
   } catch (error) {
     res.json({
