@@ -9,74 +9,91 @@ const app = express();
 const path = require("path");
 const FileHandler = require("./class/FileHandler");
 const sendEmail = require("./utils/sendEmail");
+const mysql = require("mysql2/promise");
 
 const fileHandler = new FileHandler();
-db.sequelize.options.logging = false;
-db.sequelize.sync({ alter: true }).then(() => {
-  app.listen(process.env.SERVER_PORT, async () => {
 
-    try {
-      const userMails = await db.logs.findAll({
-        where: { userMail: { [Op.not]: null }, campagneId: { [Op.not]: null } },
-      });
-      const allMails = await db.mails.findAll({
-        where: { campagneId: { [Op.not]: null } },
-        include: [
-          { model: db.campagnes, include: [{ model: db.entreprises }] },
-        ],
-      });
-
-      if (userMails) {
-        userMails.map((mail) => {
-          const nowDate = new Date();
-          const valueMail = mail.dataValues;
-          const differenceDate = nowDate - new Date(valueMail.createdAt);
-
-          if (differenceDate && differenceDate >= 0) {
-            const filterMails = allMails.filter(
-              (user) => user.dataValues.campagneId == valueMail.campagneId
-            );
-
-            if (filterMails && filterMails?.length > 0) {
-              filterMails.map((filterMail, index) => {
-                const campagneMail = filterMail.dataValues;
-                const differenceCampagne =
-                  campagneMail.delay * 1000 * 60 * 60 * 24 -
-                  (differenceDate + 20 * 1000);
-
-                if (differenceCampagne >= 0) {
-                  setTimeout(async () => {
-                    await sendEmail(
-                      campagneMail.campagne.entreprise.entreprise,
-                      mail.userMail,
-                      campagneMail.object,
-                      campagneMail.mailText,
-                      campagneMail.campagneId,
-                      campagneMail.title,
-                      campagneMail.img,
-                      index
-                    );
-                  }, differenceCampagne);
-                }
+mysql
+  .createConnection({
+    user: process.env.USER,
+    password: process.env.PASSWORD,
+  })
+  .then((connection) => {
+    connection
+      .query(`CREATE DATABASE IF NOT EXISTS ${process.env.DATABASE_NAME};`)
+      .then(() => {
+        db.sequelize.options.logging = false;
+        db.sequelize.sync({ alter: true }).then(() => {
+          app.listen(process.env.SERVER_PORT, async () => {
+            try {
+              const userMails = await db.logs.findAll({
+                where: {
+                  userMail: { [Op.not]: null },
+                  campagneId: { [Op.not]: null },
+                },
               });
-            }
-          }
-        });
-      }
-      console.log(`http://localhost:${process.env.SERVER_PORT}`);
-    } catch (error) {
-      console.log("ERROR CHECK SEND EMAIL", error);
-    }
+              const allMails = await db.mails.findAll({
+                where: { campagneId: { [Op.not]: null } },
+                include: [
+                  { model: db.campagnes, include: [{ model: db.entreprises }] },
+                ],
+              });
 
-    const assetPath = path.join(__dirname, "asset");
-    try {
-      const allUsers = await db.users.findAll();
-      await fileHandler.generateUser(allUsers, assetPath);
-    } catch (error) {
-      console.log("ERROR USER CREATE", error)
-    }
+              if (userMails) {
+                userMails.map((mail) => {
+                  const nowDate = new Date();
+                  const valueMail = mail.dataValues;
+                  const differenceDate =
+                    nowDate - new Date(valueMail.createdAt);
+
+                  if (differenceDate && differenceDate >= 0) {
+                    const filterMails = allMails.filter(
+                      (user) =>
+                        user.dataValues.campagneId == valueMail.campagneId
+                    );
+
+                    if (filterMails && filterMails?.length > 0) {
+                      filterMails.map((filterMail, index) => {
+                        const campagneMail = filterMail.dataValues;
+                        const differenceCampagne =
+                          campagneMail.delay * 1000 * 60 * 60 * 24 -
+                          (differenceDate + 20 * 1000);
+
+                        if (differenceCampagne >= 0) {
+                          setTimeout(async () => {
+                            await sendEmail(
+                              campagneMail.campagne.entreprise.entreprise,
+                              mail.userMail,
+                              campagneMail.object,
+                              campagneMail.mailText,
+                              campagneMail.campagneId,
+                              campagneMail.title,
+                              campagneMail.img,
+                              index
+                            );
+                          }, differenceCampagne);
+                        }
+                      });
+                    }
+                  }
+                });
+              }
+              console.log(`http://localhost:${process.env.SERVER_PORT}`);
+            } catch (error) {
+              console.log("ERROR CHECK SEND EMAIL", error);
+            }
+
+            const assetPath = path.join(__dirname, "asset");
+            try {
+              const allUsers = await db.users.findAll();
+              await fileHandler.generateUser(allUsers, assetPath);
+            } catch (error) {
+              console.log("ERROR USER CREATE", error);
+            }
+          });
+        });
+      });
   });
-});
 
 app.use(
   cors({
@@ -117,6 +134,6 @@ app.use("/log", logsRouter);
 const datasRouter = require("./routers/datasRouter");
 app.use("/data", datasRouter);
 
-// app.use((req, res, next) => {
-//   res.sendFile(path.join(__dirname, "public", "index.html"));
-// });
+app.use((req, res, next) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
