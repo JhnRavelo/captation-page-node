@@ -250,6 +250,33 @@ const statGetAll = async (req, res) => {
       },
     });
 
+    const nbrMailOpenedPerMonths = await logs.findAll({
+      attributes: [
+        [sequelize.literal("YEAR(logs.createdAt)"), "year"],
+        [sequelize.fn("COUNT", sequelize.col("logs.id")), "count"],
+        [sequelize.literal("MONTH(logs.createdAt)"), "month"],
+        "entrepriseId",
+        "campagneId",
+        "deleteId",
+      ],
+      include: [
+        { model: medias },
+        { model: campagnes, include: [{ model: entreprises }] },
+        { model: entreprises },
+      ],
+      group: ["year", "mediaId", "entrepriseId", "month"],
+      where: {
+        [Op.or]: [
+          {
+            [Op.and]: [{ campagneId: { [Op.not]: null } }, { opened: true }],
+          },
+          {
+            [Op.and]: [{ title: { [Op.not]: null } }, { opened: true }],
+          },
+        ],
+      },
+    });
+
     if (
       !nbrMailPerYears ||
       !nbrScanPerYears ||
@@ -453,6 +480,31 @@ const statGetAll = async (req, res) => {
         }
       })
       .filter((stat) => stat !== undefined);
+    const nbrMailOpenedPerMonthStats = nbrMailOpenedPerMonths
+      .map((stat) => {
+        const value = stat.dataValues;
+        if (value.campagneId) {
+          return {
+            media: value.media.media,
+            entreprise: value.campagne.entreprise.entreprise,
+            count: value.count,
+            year: value.year,
+            id: value.campagneId,
+            dateDebut: value.year + "-1",
+            month: value.month,
+          };
+        } else if (value.entrepriseId) {
+          return {
+            media: value.media.media,
+            entreprise: value.entreprise.entreprise,
+            count: value.count,
+            year: value.year,
+            dateDebut: value.year + "-1",
+            month: value.month,
+          };
+        }
+      })
+      .filter((stat) => stat !== undefined);
     const nbrMailOpenedPerCampagneStats = nbrMailOpenedPerCampagnes
       .map((stat) => {
         const value = stat.dataValues;
@@ -471,15 +523,17 @@ const statGetAll = async (req, res) => {
     res.json({
       nbrMailPerYearStats,
       nbrScanPerYearStats,
+      nbrMailOpenedStats,
       nbrMailPerMonthStats,
       nbrScanPerMonthStats,
-      nbrMailOpenedStats,
+      nbrMailOpenedPerMonthStats,
       success: true,
       nbrMailPerMonthPerCampagneStats,
       nbrScanPerMonthPerCampagneStats,
       nbrMailPerYearPerCampagneStats,
       nbrScanPerYearPerCampagneStats,
       nbrMailOpenedPerCampagneStats,
+
     });
   } catch (error) {
     res.json({
