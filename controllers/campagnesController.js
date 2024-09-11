@@ -157,7 +157,7 @@ const campagneUpdateMail = async (req, res) => {
       req.files.length > 0 &&
       req.files[0].mimetype.split("/")[0] == "image"
     ) {
-      img = await fileHandler.createImage(req, mailPath, "webp", "public");
+      img = await fileHandler.createImage(req.files, mailPath, "webp", "public");
       if (isMail && isMail?.img) {
         fileHandler.deleteFileFromDatabase(isMail.img, mailPath, "mail");
       }

@@ -115,9 +115,9 @@ class FileHandler {
     return { fileDir, location, date };
   }
 
-  async createImage(req, imgPath, ext, type) {
+  async createImage(files, imgPath, ext, type) {
     const galleryArray = new Array();
-    const response = req.files.map(async (file) => {
+    const response = files.map(async (file) => {
       if (file.mimetype.split("/")[0] == "image") {
         let webpData;
         if (ext == "webp") {

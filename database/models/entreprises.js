@@ -14,10 +14,15 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    imgCampagne: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   });
 
   entreprises.associate = (models) => {
     entreprises.hasMany(models.campagnes, { foreignKey: "entrepriseId" });
+    entreprises.belongsTo(models.users, { foreignKey: "userId" });
   };
 
   return entreprises;

@@ -53,7 +53,7 @@ const qrCodeAdd = async (req, res) => {
         fileHandler.deleteFileFromDatabase(isEntreprise.logo, logoPath, "logo");
       }
       const filePath = await fileHandler.createImage(
-        req,
+        req.files,
         logoPath,
         "png",
         "public",

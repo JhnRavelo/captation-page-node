@@ -1,8 +1,18 @@
 const express = require("express");
 const verifyJWT = require("../middlewares/verifyJWT");
-const { entrepriseGetAll } = require("../controllers/entreprisesController");
+const { entrepriseGetAll, entrepriseAdd } = require("../controllers/entreprisesController");
 const router = express.Router();
+const multer = require("multer");
 
-router.route("/").get(verifyJWT, entrepriseGetAll);
+const memoryStorage = multer({ storage: multer.memoryStorage() });
+
+router
+  .route("/")
+  .get(verifyJWT, entrepriseGetAll)
+  .post(
+    verifyJWT,
+    memoryStorage.fields([{ name: "imgCampagne" }, { name: "logo" }]),
+    entrepriseAdd
+  );
 
 module.exports = router;

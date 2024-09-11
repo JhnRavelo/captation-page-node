@@ -29,7 +29,7 @@ const pageAdd = async (req, res) => {
       });
     const fileHandler = new FileHandler();
     const location = await fileHandler.createImage(
-      req,
+      req.files,
       pagePath,
       "webp",
       "public"
@@ -105,7 +105,7 @@ const pageUpdate = async (req, res) => {
     ) {
       fileHandler.deleteFileFromDatabase(pageUpdated.img, pagePath, "img");
       const location = await fileHandler.createImage(
-        req,
+        req.files,
         pagePath,
         "webp",
         "public"

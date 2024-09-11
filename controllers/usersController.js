@@ -157,7 +157,7 @@ const userEditAvatar = async (req, res) => {
     if (isUser.avatar)
       fileHandler.deleteFileFromDatabase(isUser.avatar, avatarPath, "avatar");
     const filePath = await fileHandler.createImage(
-      req,
+      req.files,
       avatarPath,
       "webp",
       "public"
