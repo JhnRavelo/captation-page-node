@@ -4,7 +4,7 @@ const sharp = require("sharp");
 const fsExtra = require("fs-extra");
 const AdmZip = require("adm-zip");
 const archiver = require("archiver");
-const util = require('util');
+const util = require("util");
 require("dotenv").config();
 const importFileToDatabase = require("../utils/importFileToDatabase");
 const generateDataJWT = require("../utils/generateDataJWT");

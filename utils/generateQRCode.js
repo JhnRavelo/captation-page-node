@@ -6,17 +6,24 @@ module.exports = async (url, logoPath, filePath) => {
   try {
     const fileHandler = new FileHandler();
     const qrCanvas = createCanvas(1200, 1200);
-    await QRCode.toCanvas(qrCanvas, url, { width: 1200, margin: 1 });
-
+    await QRCode.toCanvas(qrCanvas, url, {
+      errorCorrectionLevel: "H",
+      margin: 1,
+      color: {
+        dark: "#000000",
+        light: "#ffffff",
+      },
+    });
     const logo = await loadImage(logoPath);
     const combinedCanvas = createCanvas(1200, 1200);
     const ctx = combinedCanvas.getContext("2d");
     ctx.drawImage(qrCanvas, 0, 0, 1200, 1200);
-    let maxLogoSize = 400;
-    if(logoPath.includes("vertec")) {
+    let maxLogoSize = 400; 
+    const logoRatio = logo.width / logo.height;
+
+    if (logoRatio > 2) {
       maxLogoSize = 600;
     }
-    const logoRatio = logo.width / logo.height;
     let logoWidth = maxLogoSize;
     let logoHeight = maxLogoSize;
 

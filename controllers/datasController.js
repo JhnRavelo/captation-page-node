@@ -5,7 +5,6 @@ const db = require("../database/models");
 const path = require("path");
 const generateRandomText = require("../utils/generateRandomText");
 const fs = require("fs");
-const fsExtra = require("fs-extra");
 
 const fileHandler = new FileHandler();
 const exportPath = path.join(__dirname, "..", "database", "export");
