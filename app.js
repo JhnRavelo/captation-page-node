@@ -85,8 +85,9 @@ mysql
 
             const assetPath = path.join(__dirname, "asset");
             try {
-              const allUsers = await db.users.findAll();
-              await fileHandler.generateUser(allUsers, assetPath);
+              const users = await db.users.findAll();
+              const entreprises = await db.entreprises.findAll();
+              await fileHandler.generateData({ users, entreprises }, assetPath);
             } catch (error) {
               console.log("ERROR USER CREATE", error);
             }

@@ -8,7 +8,7 @@ const assetPath = path.join(__dirname, "..", "asset");
 const createUser = async (req, res, next) => {
   const allUsers = await users.findAll();
   if (allUsers.length == 0) {
-    await fileHandler.generateUser(null, assetPath);
+    await fileHandler.generateData(null, assetPath);
     next();
   } else next();
 };

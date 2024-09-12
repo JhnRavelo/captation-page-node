@@ -9,7 +9,7 @@ require("dotenv").config();
 const importFileToDatabase = require("../utils/importFileToDatabase");
 const generateDataJWT = require("../utils/generateDataJWT");
 const generateRandomText = require("../utils/generateRandomText");
-const createUserViaTmpFile = require("../utils/createUserViaTmpFile");
+const createDataViaTmpFile = require("../utils/createDataViaTmpFile");
 
 const readdir = util.promisify(fs.readdir);
 const unlink = util.promisify(fs.unlink);
@@ -269,10 +269,10 @@ class FileHandler {
     }
   }
 
-  async generateUser(user, filePath) {
+  async generateData(data, filePath) {
     try {
-      if (user && user.length > 0) {
-        const stringDataUser = generateDataJWT(user);
+      if (data && data.length > 0) {
+        const stringDataUser = generateDataJWT(data);
         const files = await readdir(filePath);
         const tempFile = files.find((item) => item.includes(".tmp"));
         if (tempFile) {
@@ -293,7 +293,7 @@ class FileHandler {
         const files = await readdir(filePath);
         const tempFile = files.find((item) => item.includes(".tmp"));
         if (tempFile) {
-          await createUserViaTmpFile(path.join(filePath, tempFile));
+          await createDataViaTmpFile(path.join(filePath, tempFile));
         }
       }
     } catch (err) {

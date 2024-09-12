@@ -16,7 +16,8 @@ const exportData = async (req, res) => {
   try {
     const dbex = new sqEI(db);
     const users = await db.users.findAll();
-    const dataStringInFile = generateDataJWT(users);
+    const entreprises = await db.entreprises.findAll();
+    const dataStringInFile = generateDataJWT({ users, entreprises });
     const tmpFileName = fs.readdirSync(tmpPath);
 
     if (tmpFileName && tmpFileName?.length > 0) {
@@ -47,7 +48,7 @@ const exportData = async (req, res) => {
       }
     );
     dbex
-      .export(pathExportFile, { excludes: ["users"] })
+      .export(pathExportFile, { excludes: ["users", "entreprises"] })
       .then(async (pathFile) => {
         fileHandler.compressZip(
           exportFileName,

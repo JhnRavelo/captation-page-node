@@ -3,7 +3,6 @@ const db = require("../database/models");
 
 module.exports = (location) => {
   const dbex = new sqEI([
-    db.entreprises,
     db.medias,
     db.campagnes,
     db.pages,
@@ -13,7 +12,7 @@ module.exports = (location) => {
     db.stats,
   ]);
   const error = dbex
-    .import(location, { overwrite: true, excludes: ["users"] })
+    .import(location, { overwrite: true, excludes: ["users", "entreprises"] })
     .then(() => {
       return true;
     })
