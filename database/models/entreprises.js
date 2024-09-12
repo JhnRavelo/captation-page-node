@@ -18,6 +18,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    fontFamily: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   });
 
   entreprises.associate = (models) => {

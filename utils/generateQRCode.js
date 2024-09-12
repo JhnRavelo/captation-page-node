@@ -20,14 +20,10 @@ module.exports = async (url, logoPath, filePath) => {
     ctx.drawImage(qrCanvas, 0, 0, 1200, 1200);
     let maxLogoSize = 400; 
     const logoRatio = logo.width / logo.height;
-
-    if (logoRatio > 2) {
-      maxLogoSize = 600;
-    }
     let logoWidth = maxLogoSize;
     let logoHeight = maxLogoSize;
 
-    if (logoRatio > 1) {
+    if (logoRatio < 1) {
       logoHeight = maxLogoSize / logoRatio;
     } else {
       logoWidth = maxLogoSize * logoRatio;

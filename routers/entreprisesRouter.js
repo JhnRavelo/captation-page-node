@@ -1,6 +1,10 @@
 const express = require("express");
 const verifyJWT = require("../middlewares/verifyJWT");
-const { entrepriseGetAll, entrepriseAdd } = require("../controllers/entreprisesController");
+const {
+  entrepriseGetAll,
+  entrepriseAdd,
+  entrepriseUpdate,
+} = require("../controllers/entreprisesController");
 const router = express.Router();
 const multer = require("multer");
 
@@ -13,6 +17,11 @@ router
     verifyJWT,
     memoryStorage.fields([{ name: "imgCampagne" }, { name: "logo" }]),
     entrepriseAdd
+  )
+  .put(
+    verifyJWT,
+    memoryStorage.fields([{ name: "imgCampagne" }, { name: "logo" }]),
+    entrepriseUpdate
   );
 
 module.exports = router;

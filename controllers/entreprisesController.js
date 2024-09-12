@@ -9,7 +9,7 @@ const logoPath = path.join(__dirname, "..", "public", "logo");
 
 const entrepriseGetAll = async (req, res) => {
   try {
-    const allEntreprises = await getAllCompanies();
+    const allEntreprises = await getAllCompanies(req.user);
 
     if (!allEntreprises)
       return res.json({
@@ -29,7 +29,7 @@ const entrepriseGetAll = async (req, res) => {
 
 const entrepriseAdd = async (req, res) => {
   try {
-    const { company } = await req.body;
+    const { company, fontFamily } = await req.body;
 
     if (
       req.files.length == 0 ||
@@ -38,7 +38,8 @@ const entrepriseAdd = async (req, res) => {
       (req.files.imgCampagne.length > 0 &&
         req.files.imgCampagne[0].mimetype.split("/")[0] != "image") ||
       !req.user ||
-      !company
+      !company ||
+      !fontFamily
     )
       return res.json({ success: false, message: "Données non trouvés" });
     const isEntreprise = await entreprises.findOne({
@@ -59,14 +60,19 @@ const entrepriseAdd = async (req, res) => {
       "png",
       "public"
     );
-    const result = await entreprises.create({ entreprise: company, logo, imgCampagne });
+    const result = await entreprises.create({
+      entreprise: company,
+      logo,
+      imgCampagne,
+      fontFamily,
+    });
 
     if (!result)
       return res.json({
         success: false,
         message: "Erreur ajout dans la base de données",
       });
-    const allEntreprises = await getAllCompanies();
+    const allEntreprises = await getAllCompanies(req.user);
 
     if (!allEntreprises)
       return res.json({
@@ -83,4 +89,67 @@ const entrepriseAdd = async (req, res) => {
   }
 };
 
-module.exports = { entrepriseGetAll, entrepriseAdd };
+const entrepriseUpdate = async (req, res) => {
+  try {
+    const { company, fontFamily, id } = await req.body;
+    let logo, imgCampagne;
+
+    if (!company || !fontFamily || !id)
+      return res.json({
+        success: false,
+        message: "Erreur non données envoyés pour mettre à jour entreprise",
+      });
+    const isEntreprise = await entreprises.findOne({ where: { id: id } });
+
+    if (!isEntreprise)
+      return res.json({
+        success: false,
+        message: "Erreur entreprise non trouvé",
+      });
+
+    if (
+      req.files.length > 0 &&
+      req.files.logo.length > 0 &&
+      req.files.logo[0].mimetype.split("/")[0] != "image"
+    ) {
+      fileHandler.deleteFileFromDatabase(isEntreprise.logo, logoPath);
+      logo = await fileHandler.createImage(
+        req.files.logo,
+        logoPath,
+        "png",
+        "public"
+      );
+      isEntreprise.logo = logo;
+    }
+
+    if (
+      req.files.length > 0 &&
+      req.files.imgCampagne.length > 0 &&
+      req.files.imgCampagne[0].mimetype.split("/")[0] != "image"
+    ) {
+      fileHandler.deleteFileFromDatabase(isEntreprise.imgCampagne, imgPath);
+      imgCampagne = await fileHandler.createImage(
+        req.files.imgCampagne,
+        imgPath,
+        "jpg",
+        "public"
+      );
+      isEntreprise.imgCampagne = imgCampagne;
+    }
+    isEntreprise.set({ entreprise: company, fontFamily: fontFamily });
+    const result = await isEntreprise.save();
+
+    if (!result)
+      return res.json({
+        success: false,
+        message: "Erreur mise à jour entreprise dans la base de données",
+      });
+    const datas = await getAllCompanies(req.user);
+    res.json({ success: true, datas });
+  } catch (error) {
+    res.json({ success: false, message: "Erreur mise à jour entreprise" });
+    console.log("ERROR ENTREPRISE UPDATE", error);
+  }
+};
+
+module.exports = { entrepriseGetAll, entrepriseAdd, entrepriseUpdate };
