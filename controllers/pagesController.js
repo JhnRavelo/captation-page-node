@@ -1,5 +1,5 @@
 const FileHandler = require("../class/FileHandler");
-const { pages } = require("../database/models");
+const { pages, campagnes, entreprises } = require("../database/models");
 const path = require("path");
 const getAllPages = require("../utils/getAllPages");
 
@@ -163,4 +163,29 @@ const pageDelete = async (req, res) => {
   }
 };
 
-module.exports = { pageAdd, pageGetAll, pageUpdate, pageDelete };
+const getSinglePage = async (req, res) => {
+  try {
+    const idCampagne = req.query.idCampagne;
+    const isPage = await pages.findOne({
+      where: { campagneId: idCampagne },
+      include: [{ model: campagnes, include: [{ model: entreprises }] }],
+    });
+
+    if (!isPage) return res.json({ success: false });
+    const data = {
+      logo: isPage.campagne.entreprise.imgCampagne,
+      titleColor: isPage.titleColor,
+      titleBackgroundColor: isPage.titleBackgroundColor,
+      sloganCampagne: isPage.slogan,
+      description: isPage.campagne.description,
+      imgCampagne: isPage.img,
+    };
+
+    res.json({ success: true, data });
+  } catch (error) {
+    res.json({ success: false });
+    console.log("ERROR GET SINGLE PAGE", error);
+  }
+};
+
+module.exports = { pageAdd, pageGetAll, pageUpdate, pageDelete, getSinglePage };
