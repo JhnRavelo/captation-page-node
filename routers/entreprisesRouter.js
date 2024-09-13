@@ -4,6 +4,8 @@ const {
   entrepriseGetAll,
   entrepriseAdd,
   entrepriseUpdate,
+  entrepriseDelete,
+  entrepriseGetLogo,
 } = require("../controllers/entreprisesController");
 const router = express.Router();
 const multer = require("multer");
@@ -23,5 +25,10 @@ router
     memoryStorage.fields([{ name: "imgCampagne" }, { name: "logo" }]),
     entrepriseUpdate
   );
+
+router.delete("/:id", verifyJWT, entrepriseDelete);
+
+router.get("/logo/:idLogo", verifyJWT, entrepriseGetLogo);
+router.get("/img/:idImg", verifyJWT, entrepriseGetLogo);
 
 module.exports = router;

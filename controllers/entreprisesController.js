@@ -3,6 +3,7 @@ const { entreprises } = require("../database/models");
 const fileHandler = new FileHandler();
 const path = require("path");
 const getAllCompanies = require("../utils/getAllCompanies");
+const { Op } = require("sequelize");
 
 const imgPath = path.join(__dirname, "..", "public", "entreprise");
 const logoPath = path.join(__dirname, "..", "public", "logo");
@@ -43,7 +44,7 @@ const entrepriseAdd = async (req, res) => {
     )
       return res.json({ success: false, message: "Données non trouvés" });
     const isEntreprise = await entreprises.findOne({
-      where: { entreprise: company, userId: req.user },
+      where: { [Op.and]: [{ entreprise: company }, { userId: req.user }] },
     });
 
     if (isEntreprise)
@@ -152,4 +153,53 @@ const entrepriseUpdate = async (req, res) => {
   }
 };
 
-module.exports = { entrepriseGetAll, entrepriseAdd, entrepriseUpdate };
+const entrepriseDelete = async (req, res) => {
+  const { id } = await req.params;
+};
+
+const entrepriseGetLogo = async (req, res) => {
+  try {
+    const { idLogo, idImg } = req.params;
+
+    if ((!idImg && !idLogo) || !req.user) return res.sendStatus(401);
+
+    if (idLogo) {
+      const isEntreprise = await entreprises.findOne({
+        where: { [Op.and]: [{ id: idLogo }, { userId: req.user }] },
+      });
+
+      if (!isEntreprise) return res.sendStatus(401);
+      const filePath = fileHandler.getFilePath(
+        isEntreprise.logo,
+        logoPath,
+        "logo",
+        "private"
+      );
+      res.sendFile(filePath, { root: "." });
+    } else if (idImg) {
+      const isEntreprise = await entreprises.findOne({
+        where: { [Op.and]: [{ id: idImg }, { userId: req.user }] },
+      });
+
+      if (!isEntreprise) return res.sendStatus(401);
+      const filePath = fileHandler.getFilePath(
+        isEntreprise.imgCampagne,
+        imgPath,
+        "entreprise",
+        "private"
+      );
+      res.sendFile(filePath, { root: "." });
+    }
+  } catch (error) {
+    res.sendStatus(401);
+    console.log("ERROR ENTREPRISE GET LOGO", error);
+  }
+};
+
+module.exports = {
+  entrepriseGetAll,
+  entrepriseAdd,
+  entrepriseUpdate,
+  entrepriseDelete,
+  entrepriseGetLogo,
+};

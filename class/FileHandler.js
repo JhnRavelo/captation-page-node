@@ -142,17 +142,24 @@ class FileHandler {
   }
 
   deleteFileFromDatabase(deleted, dirPath, type) {
+    const filePath = this.getFilePath(deleted, dirPath, type);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  }
+
+  getFilePath(deleted, dirPath, type, level) {
     const location =
       deleted.split(type).length > 2
         ? deleted.split(type).slice(1).join(type)
         : deleted.split(type)[1];
-    let filePath;
-    if (type == "pdf") {
-      filePath = path.join(dirPath, location + "pdf");
-    } else filePath = path.join(dirPath, location);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    let filePath = path.join(dirPath, location);
+
+    if (level == "private") {
+      filePath = "/public/" + type + location;
     }
+
+    return filePath;
   }
 
   async compressZip(
