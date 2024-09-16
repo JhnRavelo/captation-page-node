@@ -4,6 +4,7 @@ package-lock.json
 controllers/refreshController.js
 routers/refreshRouter.js
 public
+private
 merge.env.txt
 separate.env.txt
 cryptoRandom.js

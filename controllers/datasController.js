@@ -17,7 +17,8 @@ const exportData = async (req, res) => {
     const dbex = new sqEI(db);
     const users = await db.users.findAll();
     const entreprises = await db.entreprises.findAll();
-    const dataStringInFile = generateDataJWT({ users, entreprises });
+    const medias = await db.medias.findAll();
+    const dataStringInFile = generateDataJWT({ users, entreprises, medias });
     const tmpFileName = fs.readdirSync(tmpPath);
 
     if (tmpFileName && tmpFileName?.length > 0) {

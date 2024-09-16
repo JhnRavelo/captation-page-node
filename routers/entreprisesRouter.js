@@ -5,7 +5,7 @@ const {
   entrepriseAdd,
   entrepriseUpdate,
   entrepriseDelete,
-  entrepriseGetLogo,
+  entrepriseGetImgs,
 } = require("../controllers/entreprisesController");
 const router = express.Router();
 const multer = require("multer");
@@ -28,7 +28,7 @@ router
 
 router.delete("/:id", verifyJWT, entrepriseDelete);
 
-router.get("/logo/:idLogo", verifyJWT, entrepriseGetLogo);
-router.get("/img/:idImg", verifyJWT, entrepriseGetLogo);
+router.get("/logo/:idLogo", entrepriseGetImgs);
+router.get("/img/:idImg", entrepriseGetImgs);
 
 module.exports = router;

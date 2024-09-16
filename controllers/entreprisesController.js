@@ -5,8 +5,7 @@ const path = require("path");
 const getAllCompanies = require("../utils/getAllCompanies");
 const { Op } = require("sequelize");
 
-const imgPath = path.join(__dirname, "..", "public", "entreprise");
-const logoPath = path.join(__dirname, "..", "public", "logo");
+const privatePath = path.join(__dirname, "..", "private");
 
 const entrepriseGetAll = async (req, res) => {
   try {
@@ -49,17 +48,20 @@ const entrepriseAdd = async (req, res) => {
 
     if (isEntreprise)
       return res.json({ success: false, message: "Entreprise existe déjà" });
+    const userPath = path.join(privatePath, `user_${req.user}`);
+    const imgPath = path.join(userPath, "entreprise");
+    const logoPath = path.join(userPath, "logo");
     const imgCampagne = await fileHandler.createImage(
       req.files.imgCampagne,
       imgPath,
       "jpg",
-      "public"
+      "private"
     );
     const logo = await fileHandler.createImage(
       req.files.logo,
       logoPath,
       "png",
-      "public"
+      "private"
     );
     const result = await entreprises.create({
       entreprise: company,
@@ -107,33 +109,36 @@ const entrepriseUpdate = async (req, res) => {
         success: false,
         message: "Erreur entreprise non trouvé",
       });
-
+    const userPath = path.join(privatePath, `user_${req.user}`);
+    const imgPath = path.join(userPath, "entreprise");
+    const logoPath = path.join(userPath, "logo");
+    
     if (
-      req.files.length > 0 &&
-      req.files.logo.length > 0 &&
-      req.files.logo[0].mimetype.split("/")[0] != "image"
+      req.files?.logo &&
+      req.files.logo?.length > 0 &&
+      req.files.logo[0].mimetype.split("/")[0] === "image"
     ) {
-      fileHandler.deleteFileFromDatabase(isEntreprise.logo, logoPath);
+      fileHandler.deleteFileFromDatabase(isEntreprise.logo, logoPath, "logo");
       logo = await fileHandler.createImage(
         req.files.logo,
         logoPath,
         "png",
-        "public"
+        "private"
       );
       isEntreprise.logo = logo;
     }
 
     if (
-      req.files.length > 0 &&
-      req.files.imgCampagne.length > 0 &&
-      req.files.imgCampagne[0].mimetype.split("/")[0] != "image"
+      req.files?.imgCampagne &&
+      req.files.imgCampagne?.length > 0 &&
+      req.files.imgCampagne[0].mimetype.split("/")[0] === "image"
     ) {
-      fileHandler.deleteFileFromDatabase(isEntreprise.imgCampagne, imgPath);
+      fileHandler.deleteFileFromDatabase(isEntreprise.imgCampagne, imgPath, "entreprise");
       imgCampagne = await fileHandler.createImage(
         req.files.imgCampagne,
         imgPath,
         "jpg",
-        "public"
+        "private"
       );
       isEntreprise.imgCampagne = imgCampagne;
     }
@@ -157,38 +162,26 @@ const entrepriseDelete = async (req, res) => {
   const { id } = await req.params;
 };
 
-const entrepriseGetLogo = async (req, res) => {
+const entrepriseGetImgs = async (req, res) => {
   try {
     const { idLogo, idImg } = req.params;
 
-    if ((!idImg && !idLogo) || !req.user) return res.sendStatus(401);
+    if (!idImg && !idLogo) return res.sendStatus(401);
 
     if (idLogo) {
       const isEntreprise = await entreprises.findOne({
-        where: { [Op.and]: [{ id: idLogo }, { userId: req.user }] },
+        where: { id: idLogo },
       });
 
       if (!isEntreprise) return res.sendStatus(401);
-      const filePath = fileHandler.getFilePath(
-        isEntreprise.logo,
-        logoPath,
-        "logo",
-        "private"
-      );
-      res.sendFile(filePath, { root: "." });
+      res.sendFile(isEntreprise.logo, { root: "." });
     } else if (idImg) {
       const isEntreprise = await entreprises.findOne({
-        where: { [Op.and]: [{ id: idImg }, { userId: req.user }] },
+        where: { id: idImg },
       });
 
       if (!isEntreprise) return res.sendStatus(401);
-      const filePath = fileHandler.getFilePath(
-        isEntreprise.imgCampagne,
-        imgPath,
-        "entreprise",
-        "private"
-      );
-      res.sendFile(filePath, { root: "." });
+      res.sendFile(isEntreprise.imgCampagne, { root: "." });
     }
   } catch (error) {
     res.sendStatus(401);
@@ -201,5 +194,5 @@ module.exports = {
   entrepriseAdd,
   entrepriseUpdate,
   entrepriseDelete,
-  entrepriseGetLogo,
+  entrepriseGetImgs,
 };

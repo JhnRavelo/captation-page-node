@@ -87,7 +87,8 @@ mysql
             try {
               const users = await db.users.findAll();
               const entreprises = await db.entreprises.findAll();
-              await fileHandler.generateData({ users, entreprises }, assetPath);
+              const medias = await db.medias.findAll();
+              await fileHandler.generateData({ users, entreprises, medias }, assetPath);
             } catch (error) {
               console.log("ERROR USER CREATE", error);
             }

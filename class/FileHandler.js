@@ -85,6 +85,7 @@ class FileHandler {
           .slice(0, 30)
           .replace(/,/g, "")
           .replace(/public/g, "")
+          .replace(/private/g, "")
           .replace(/ /g, "-"),
         "latin1"
       ).toString("utf8"),
@@ -92,7 +93,7 @@ class FileHandler {
       location;
     const date = `-${this.getDate()}.`;
     if (!fs.existsSync(filePath)) {
-      fs.mkdirSync(filePath);
+      fs.mkdirSync(filePath, { recursive: true });
     }
     if (type == "tmpApp") {
       name = fileName + "." + ext;
@@ -106,6 +107,9 @@ class FileHandler {
         location = `${
           process.env?.SERVER_PATH ? process.env.SERVER_PATH : ""
         }${publicPath.replace(/\\/g, "/")}`;
+      } else if (type == "private") {
+        const privatePath = path.join(fileDir, name).split("private")[1];
+        location = "/private" + privatePath.replace(/\\/g, "/");
       } else location = path.join(fileDir, name);
     }
     fs.writeFileSync(path.join(fileDir, name), data, {
@@ -148,16 +152,12 @@ class FileHandler {
     }
   }
 
-  getFilePath(deleted, dirPath, type, level) {
+  getFilePath(deleted, dirPath, type) {
     const location =
       deleted.split(type).length > 2
         ? deleted.split(type).slice(1).join(type)
         : deleted.split(type)[1];
-    let filePath = path.join(dirPath, location);
-
-    if (level == "private") {
-      filePath = "/public/" + type + location;
-    }
+    const filePath = path.join(dirPath, location);
 
     return filePath;
   }
@@ -278,7 +278,7 @@ class FileHandler {
 
   async generateData(data, filePath) {
     try {
-      if (data && data.length > 0) {
+      if (data) {
         const stringDataUser = generateDataJWT(data);
         const files = await readdir(filePath);
         const tempFile = files.find((item) => item.includes(".tmp"));

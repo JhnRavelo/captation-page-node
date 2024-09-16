@@ -7,6 +7,8 @@ module.exports = async (id) => {
     const value = entreprise.dataValues;
     return {
       id: value.entreprise,
+      logo: value.logo,
+      img: value.imgCampagne,
       idData: value.id,
       company: value.entreprise,
       fontFamily: value.fontFamily,
