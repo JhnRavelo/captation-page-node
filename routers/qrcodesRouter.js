@@ -7,6 +7,7 @@ const {
   qrCodeGetAll,
   qrCodeDelete,
   qrCodeDownload,
+  qrCodeGetImg,
 } = require("../controllers/qrcodesController");
 
 const memoryStorage = multer({ storage: multer.memoryStorage() });
@@ -18,5 +19,7 @@ router
 
 router.delete("/delete/:id", verifyJWT, qrCodeDelete);
 router.post("/download", verifyJWT, qrCodeDownload);
+
+router.get("/img/:id", verifyJWT, qrCodeGetImg);
 
 module.exports = router;

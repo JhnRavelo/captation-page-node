@@ -170,8 +170,30 @@ const qrCodeDownload = async (req, res) => {
         : img.split("qrcode")[1];
     res.download(path.join(qrCodePath, fileName));
   } catch (error) {
+    res.json({ success: false, message: "Erreur serveur téléchargement" });
     console.log("ERROR QR CODE DOWNLOAD", error);
   }
 };
 
-module.exports = { qrCodeAdd, qrCodeGetAll, qrCodeDelete, qrCodeDownload };
+const qrCodeGetImg = async (req, res) => {
+  try {
+    const { id } = await req.params;
+
+    if (!id) return res.sendStatus(400);
+    const isQRCode = await qrcodes.findOne({ where: { id: id } });
+
+    if (!isQRCode) return res.sendStatus(400);
+    res.sendFile(isQRCode.qrcode, { root: "." });
+  } catch (error) {
+    res.sendStatus(400);
+    console.log("ERROR QR CODE DOWNLOAD", error);
+  }
+};
+
+module.exports = {
+  qrCodeAdd,
+  qrCodeGetAll,
+  qrCodeDelete,
+  qrCodeDownload,
+  qrCodeGetImg,
+};
