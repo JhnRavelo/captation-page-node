@@ -1,8 +1,10 @@
 const { pages, campagnes, entreprises } = require("../database/models");
 
-module.exports = async () => {
+module.exports = async (id) => {
   const allPages = await pages.findAll({
-    include: [{ model: campagnes , include: [{model: entreprises}]}],
+    include: [
+      { model: campagnes, userId: id, include: [{ model: entreprises }] },
+    ],
     order: [["createdAt", "DESC"]],
   });
 

@@ -1,7 +1,9 @@
-const { mails } = require("../database/models");
+const { mails, campagnes } = require("../database/models");
 
-module.exports = async () => {
-  const getMails = await mails.findAll();
+module.exports = async (id) => {
+  const getMails = await mails.findAll({
+    include: [{ model: campagnes, where: { userId: id } }],
+  });
 
   const datas = getMails.map((mail) => {
     const value = mail.dataValues;

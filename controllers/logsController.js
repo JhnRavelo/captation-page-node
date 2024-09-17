@@ -11,9 +11,14 @@ const logGetUserMail = async (req, res) => {
       ],
       order: [["createdAt", "DESC"]],
       where: {
-        userMail: {
-          [Op.not]: null,
-        },
+        [Op.and]: [
+          {
+            userMail: {
+              [Op.not]: null,
+            },
+          },
+          { userId: req.user },
+        ],
       },
     });
 
@@ -34,13 +39,14 @@ const logGetUserMail = async (req, res) => {
             title: value.campagne.title,
             entreprise: value.campagne.entreprise.entreprise,
           };
-        } else if (value?.title && value?.entrepriseId)
+        } else if (value?.title && value?.entrepriseId) {
           return {
             media: value.media.media,
             mail: value.userMail,
             title: value.title,
             entreprise: value.entreprise.entreprise,
           };
+        }
       })
       .filter((user) => user !== undefined);
     res.json({ success: true, users });
@@ -59,6 +65,7 @@ const logsGetAll = async (req, res) => {
         { model: entreprises },
       ],
       order: [["createdAt", "DESC"]],
+      where: { userId: req.user },
     });
 
     const dataLogsUnread = await logs.findAll({
@@ -67,7 +74,13 @@ const logsGetAll = async (req, res) => {
         { model: campagnes, include: [{ model: entreprises }] },
       ],
       order: [["createdAt", "DESC"]],
-      where: { unRead: true, campagneId: { [Op.not]: null } },
+      where: {
+        [Op.and]: [
+          { unRead: true },
+          { campagneId: { [Op.not]: null } },
+          { userId: req.user },
+        ],
+      },
     });
 
     if (!dataLogs || !dataLogsUnread)

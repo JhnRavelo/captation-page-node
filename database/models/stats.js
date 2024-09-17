@@ -13,13 +13,14 @@ module.exports = (sequelize, DataTypes) => {
     },
     entreprise: {
       allowNull: true,
-      type: DataTypes.STRING, 
-    }
+      type: DataTypes.STRING,
+    },
   });
 
   stats.associate = (models) => {
     stats.belongsTo(models.campagnes, { foreignKey: "campagneId" });
     stats.belongsTo(models.medias, { foreignKey: "mediaId" });
+    stats.belongsTo(models.users, { foreignKey: "userId" });
   };
 
   return stats;

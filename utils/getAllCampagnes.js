@@ -1,9 +1,10 @@
 const { campagnes, users, entreprises } = require("../database/models");
 
-module.exports = async () => {
+module.exports = async (id) => {
   const allCampagnes = await campagnes.findAll({
     include: [{ model: users }, { model: entreprises }],
     order: [["createdAt", "DESC"]],
+    where: { userId: id },
   });
 
   const datas = allCampagnes.map((campagne) => {

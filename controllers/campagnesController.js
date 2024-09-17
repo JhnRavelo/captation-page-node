@@ -5,6 +5,7 @@ const {
   qrcodes,
   pages,
   mails,
+  stats,
 } = require("../database/models");
 const { Op } = require("sequelize");
 const getAllCampagnes = require("../utils/getAllCampagnes");
@@ -55,7 +56,7 @@ const campagneAdd = async (req, res) => {
     if (!newCampagne)
       return res.json({ success: false, message: "Campagne non ajouté" });
     await logs.create({ campagneId: newCampagne.id });
-    const datas = await getAllCampagnes();
+    const datas = await getAllCampagnes(req.user);
     res.json({
       datas,
       message: "Campagne ajouté",
@@ -69,7 +70,7 @@ const campagneAdd = async (req, res) => {
 
 const campagneGetAll = async (req, res) => {
   try {
-    const datas = await getAllCampagnes();
+    const datas = await getAllCampagnes(req.user);
 
     if (!datas)
       return res.json({
@@ -122,7 +123,7 @@ const campagneUpdate = async (req, res) => {
 
     if (!result)
       return res.json({ success: false, message: "Campagne non modifié" });
-    const datas = await getAllCampagnes();
+    const datas = await getAllCampagnes(req.user);
     res.json({ datas, message: "Campagne modifié", success: true });
   } catch (error) {
     res.json({ success: false, message: "Erreur serveur" });
@@ -189,7 +190,7 @@ const campagneUpdateMail = async (req, res) => {
         success: false,
         message: "Campagne email non modifié",
       });
-    const datas = await getAllMails();
+    const datas = await getAllMails(req.user);
     res.json({ datas, message: "Campagne email modifié", success: true });
   } catch (error) {
     res.json({ success: false, message: "Erreur serveur" });
@@ -199,7 +200,7 @@ const campagneUpdateMail = async (req, res) => {
 
 const campagneGetMail = async (req, res) => {
   try {
-    const datas = await getAllMails();
+    const datas = await getAllMails(req.user);
     res.json({ success: true, datas });
   } catch (error) {
     res.json({ success: false, message: "Erreur ajout d'email campagne" });

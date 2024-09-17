@@ -47,7 +47,7 @@ const pageAdd = async (req, res) => {
         success: false,
         message: "Erreur ajout de page dans la base de données",
       });
-    const datas = await getAllPages();
+    const datas = await getAllPages(req.user);
     res.json({ datas, success: true });
   } catch (error) {
     console.log("ERROR ADD PAGE", error);
@@ -57,7 +57,7 @@ const pageAdd = async (req, res) => {
 
 const pageGetAll = async (req, res) => {
   try {
-    const datas = await getAllPages();
+    const datas = await getAllPages(req.user);
 
     if (!datas)
       return res.json({
@@ -125,7 +125,7 @@ const pageUpdate = async (req, res) => {
         success: false,
         message: "Erreur de modification de page dans la base de données",
       });
-    const datas = await getAllPages();
+    const datas = await getAllPages(req.user);
     res.json({ success: true, datas });
   } catch (error) {
     res.json({
@@ -155,7 +155,7 @@ const pageDelete = async (req, res) => {
 
     if (!result)
       return res.json({ success: false, message: "Erreur page non supprimé" });
-    const datas = await getAllPages();
+    const datas = await getAllPages(req.user);
     res.json({ datas, success: true });
   } catch (error) {
     res.json({ success: false, message: "Erreur serveur suppression page" });

@@ -39,6 +39,7 @@ module.exports = (sequelize, DataTypes) => {
     logs.belongsTo(models.campagnes, { foreignKey: "campagneId" });
     logs.belongsTo(models.medias, { foreignKey: "mediaId" });
     logs.belongsTo(models.entreprises, { foreignKey: "entrepriseId" });
+    logs.belongsTo(models.users, { foreignKey: "userId" });
   };
 
   return logs;

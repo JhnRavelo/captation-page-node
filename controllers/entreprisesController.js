@@ -195,4 +195,5 @@ module.exports = {
   entrepriseUpdate,
   entrepriseDelete,
   entrepriseGetImgs,
+  privatePath,
 };

@@ -5,11 +5,15 @@ const {
   campagnes,
 } = require("../database/models");
 
-module.exports = async () => {
+module.exports = async (id) => {
   const allQRCodes = await qrcodes.findAll({
     include: [
       { model: medias },
-      { model: campagnes, include: [{ model: entreprises }] },
+      {
+        model: campagnes,
+        where: { userId: id },
+        include: [{ model: entreprises }],
+      },
     ],
     order: [["createdAt", "DESC"]],
   });
