@@ -3,15 +3,15 @@ const { qrcodes } = require("../database/models");
 const path = require("path");
 const getAllQRCodes = require("./getAllQRCodes");
 
-const qrCodePath = path.join(__dirname, "..", "public", "qrcode");
-const logoPath = path.join(__dirname, "..", "public", "logo");
-
 module.exports = async (
   filePath,
   res,
   url,
   isMedia,
-  campagnes
+  campagnes,
+  logoPath,
+  qrCodePath,
+  id
 ) => {
   const fileName =
     filePath.split("logo").length > 2
@@ -34,6 +34,6 @@ module.exports = async (
       success: false,
       message: "Erreur d'ajout du QRCode dans la base de données",
     });
-  const datas = await getAllQRCodes();
+  const datas = await getAllQRCodes(id);
   res.json({ datas, success: true });
 };

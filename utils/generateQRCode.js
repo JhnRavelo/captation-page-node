@@ -38,7 +38,7 @@ module.exports = async (url, logoPath, filePath) => {
       buffer,
       "png",
       filePath,
-      "public"
+      "private",
     );
 
     return location;

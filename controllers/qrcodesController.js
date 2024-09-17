@@ -5,9 +5,7 @@ const path = require("path");
 const FileHandler = require("../class/FileHandler");
 const addQRCode = require("../utils/addQRCode");
 const getAllQRCodes = require("../utils/getAllQRCodes");
-
-const logoPath = path.join(__dirname, "..", "public", "logo");
-const qrCodePath = path.join(__dirname, "..", "public", "qrcode");
+const { privatePath } = require("./entreprisesController");
 
 const qrCodeAdd = async (req, res) => {
   try {
@@ -41,6 +39,9 @@ const qrCodeAdd = async (req, res) => {
       campagnes +
       "/" +
       isMedia.url;
+    const userPath = path.join(privatePath, `user_${req.user}`);
+    const qrCodePath = path.join(userPath, "qrcode");
+    const logoPath = path.join(userPath, "logo");
 
     if (
       req?.files &&
@@ -48,7 +49,6 @@ const qrCodeAdd = async (req, res) => {
       req.files[0].mimetype.split("/")[0] == "image"
     ) {
       const fileHandler = new FileHandler();
-
       if (isEntreprise.logo) {
         fileHandler.deleteFileFromDatabase(isEntreprise.logo, logoPath, "logo");
       }
@@ -56,12 +56,31 @@ const qrCodeAdd = async (req, res) => {
         req.files,
         logoPath,
         "png",
-        "public",
+        "private"
       );
       isEntreprise.logo = filePath;
       await isEntreprise.save();
-      await addQRCode(filePath, res, url, isMedia, campagnes);
-    } else await addQRCode(isEntreprise.logo, res, url, isMedia, campagnes);
+      await addQRCode(
+        filePath,
+        res,
+        url,
+        isMedia,
+        campagnes,
+        logoPath,
+        qrCodePath,
+        req.user
+      );
+    } else
+      await addQRCode(
+        isEntreprise.logo,
+        res,
+        url,
+        isMedia,
+        campagnes,
+        logoPath,
+        qrCodePath,
+        req.user
+      );
   } catch (error) {
     res.json({ success: false, message: "Erreur d'ajout de QR Code" });
     console.log("ERROR ADD QR CODE", error);
@@ -70,7 +89,7 @@ const qrCodeAdd = async (req, res) => {
 
 const qrCodeGetAll = async (req, res) => {
   try {
-    const datas = await getAllQRCodes();
+    const datas = await getAllQRCodes(req.user);
     if (!datas)
       return res.json({
         success: false,
@@ -104,11 +123,15 @@ const qrCodeDelete = async (req, res) => {
         message: "Erreur QR Code à supprimer non trouvé",
       });
     const fileHandler = new FileHandler();
-    fileHandler.deleteFileFromDatabase(
-      deletedQRCode.qrcode,
-      qrCodePath,
-      "qrcode"
-    );
+    const userPath = path.join(privatePath, `user_${req.user}`);
+    const qrCodePath = path.join(userPath, "qrcode");
+    if (deletedQRCode?.qrcode) {
+      fileHandler.deleteFileFromDatabase(
+        deletedQRCode.qrcode,
+        qrCodePath,
+        "qrcode"
+      );
+    }
     const result = await deletedQRCode.destroy();
 
     if (!result)
@@ -116,7 +139,7 @@ const qrCodeDelete = async (req, res) => {
         success: false,
         message: "Erreur QR Code non supprimé",
       });
-    const datas = await getAllQRCodes();
+    const datas = await getAllQRCodes(req.user);
     res.json({
       success: true,
       datas,
@@ -139,6 +162,8 @@ const qrCodeDownload = async (req, res) => {
   if (!img)
     return res.json({ success: false, message: "Erreur de téléchargement" });
   try {
+    const userPath = path.join(privatePath, `user_${req.user}`);
+    const qrCodePath = path.join(userPath, "qrcode");
     const fileName =
       img.split("qrcode").length > 2
         ? img.split("qrcode").slice(1).join("qrcode")
