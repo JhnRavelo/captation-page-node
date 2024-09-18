@@ -2,8 +2,9 @@ const FileHandler = require("../class/FileHandler");
 const { pages, campagnes, entreprises } = require("../database/models");
 const path = require("path");
 const getAllPages = require("../utils/getAllPages");
+const { privatePath } = require("./entreprisesController");
 
-const pagePath = path.join(__dirname, "..", "public", "img");
+// const pagePath = path.join(__dirname, "..", "public", "img");
 
 const pageAdd = async (req, res) => {
   try {
@@ -28,11 +29,12 @@ const pageAdd = async (req, res) => {
         message: "Erreur ce campagne a déjà une page",
       });
     const fileHandler = new FileHandler();
+    const pagePath = path.join(privatePath, `user_${req.user}`, "page");
     const location = await fileHandler.createImage(
       req.files,
       pagePath,
       "webp",
-      "public"
+      "private"
     );
     const result = await pages.create({
       slogan: sloganCampagne,
@@ -103,12 +105,13 @@ const pageUpdate = async (req, res) => {
       req.files.length > 0 &&
       req.files[0].mimetype.split("/")[0] == "image"
     ) {
+      const pagePath = path.join(privatePath, `user_${req.user}`, "page");
       fileHandler.deleteFileFromDatabase(pageUpdated.img, pagePath, "img");
       const location = await fileHandler.createImage(
         req.files,
         pagePath,
         "webp",
-        "public"
+        "private"
       );
       pageUpdated.img = location;
     }
@@ -150,6 +153,7 @@ const pageDelete = async (req, res) => {
     if (!isPage)
       return res.json({ success: false, message: "Erreur page non trouvé" });
     const fileHandler = new FileHandler();
+    const pagePath = path.join(privatePath, `user_${req.user}`, "page");
     fileHandler.deleteFileFromDatabase(isPage.img, pagePath, "img");
     const result = await isPage.destroy();
 
@@ -179,6 +183,7 @@ const getSinglePage = async (req, res) => {
       sloganCampagne: isPage.slogan,
       description: isPage.campagne.description,
       imgCampagne: isPage.img,
+      entrepriseId: isPage.campagne.entrepriseId,
     };
 
     res.json({ success: true, data });

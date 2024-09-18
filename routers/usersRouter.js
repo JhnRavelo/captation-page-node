@@ -7,16 +7,19 @@ const {
   userEditProfile,
   userEditAvatar,
   userPasswordForget,
+  userGetImg,
 } = require("../controllers/usersController");
 const multer = require("multer");
 const createUser = require("../middlewares/createUser");
 
 const memoryStorage = multer({ storage: multer.memoryStorage() });
 
-router.post("/login", createUser ,userLogin);
+router.post("/login", createUser, userLogin);
 router.get("/logout", verifyJWT, userLogout);
 router.post("/edit", verifyJWT, userEditProfile);
 router.put("/edit/avatar", verifyJWT, memoryStorage.any(), userEditAvatar);
 router.post("/password-forget", userPasswordForget);
+
+router.get("/img/:id", verifyJWT, userGetImg);
 
 module.exports = router;

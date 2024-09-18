@@ -4,9 +4,8 @@ const { Op } = require("sequelize");
 const FileHandler = require("../class/FileHandler");
 const path = require("path");
 const sendEmail = require("../utils/sendEmail");
+const { privatePath } = require("./entreprisesController");
 require("dotenv").config();
-
-const avatarPath = path.join(__dirname, "..", "public", "avatar");
 
 const userLogin = async (req, res) => {
   try {
@@ -153,6 +152,7 @@ const userEditAvatar = async (req, res) => {
     if (!isUser)
       return res.json({ success: false, message: "Utilisateur non trouvé" });
     const fileHandler = new FileHandler();
+    const avatarPath = path.join(privatePath, `user_${req.user}`, "avatar")
 
     if (isUser.avatar)
       fileHandler.deleteFileFromDatabase(isUser.avatar, avatarPath, "avatar");
@@ -160,7 +160,7 @@ const userEditAvatar = async (req, res) => {
       req.files,
       avatarPath,
       "webp",
-      "public"
+      "private",
     );
     isUser.avatar = filePath;
     const result = await isUser.save();
@@ -248,10 +248,26 @@ const userPasswordForget = async (req, res) => {
   }
 };
 
+const userGetImg = async (req, res) => {
+  try {
+    const { id } = await req.params;
+
+    if (!id) return res.sendStatus(400);
+    const isUser = await users.findOne({ where: { id: id } });
+
+    if (!isUser) return res.sendStatus(400);
+    res.sendFile(isUser.avatar, { root: "." });
+  } catch (error) {
+    res.sendStatus(400);
+    console.log("ERROR QR CODE DOWNLOAD", error);
+  }
+};
+
 module.exports = {
   userLogin,
   userLogout,
   userEditProfile,
   userEditAvatar,
   userPasswordForget,
+  userGetImg,
 };

@@ -20,6 +20,7 @@ module.exports = async (id) => {
       description: value.campagne.description,
       imgCampagne: value.img,
       dateDebut: value.createdAt,
+      entrepriseId: value.campagne.entrepriseId,
     };
   });
 
