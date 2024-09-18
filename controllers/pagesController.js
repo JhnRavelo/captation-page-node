@@ -104,7 +104,7 @@ const pageUpdate = async (req, res) => {
       req.files[0].mimetype.split("/")[0] == "image"
     ) {
       const pagePath = path.join(privatePath, `user_${req.user}`, "page");
-      fileHandler.deleteFileFromDatabase(pageUpdated.img, pagePath, "img");
+      fileHandler.deleteFileFromDatabase(pageUpdated.img, pagePath, "page");
       const location = await fileHandler.createImage(
         req.files,
         pagePath,

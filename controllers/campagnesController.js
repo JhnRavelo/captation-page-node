@@ -12,9 +12,8 @@ const getAllCampagnes = require("../utils/getAllCampagnes");
 const FileHandler = require("../class/FileHandler");
 const path = require("path");
 const getAllMails = require("../utils/getAllMails");
+const { privatePath } = require("./entreprisesController");
 
-const pagePath = path.join(__dirname, "..", "public", "img");
-const qrCodePath = path.join(__dirname, "..", "public", "qrcode");
 const mailPath = path.join(__dirname, "..", "public", "mail");
 
 const campagneAdd = async (req, res) => {
@@ -55,7 +54,7 @@ const campagneAdd = async (req, res) => {
 
     if (!newCampagne)
       return res.json({ success: false, message: "Campagne non ajouté" });
-    await logs.create({ campagneId: newCampagne.id });
+    await logs.create({ campagneId: newCampagne.id, userId: req.user });
     const datas = await getAllCampagnes(req.user);
     res.json({
       datas,
@@ -158,9 +157,18 @@ const campagneUpdateMail = async (req, res) => {
       req.files.length > 0 &&
       req.files[0].mimetype.split("/")[0] == "image"
     ) {
-      img = await fileHandler.createImage(req.files, mailPath, "webp", "public");
+      img = await fileHandler.createImage(
+        req.files,
+        path.join(mailPath, `user_${req.user}`),
+        "webp",
+        "public"
+      );
       if (isMail && isMail?.img) {
-        fileHandler.deleteFileFromDatabase(isMail.img, mailPath, "mail");
+        fileHandler.deleteFileFromDatabase(
+          isMail.img,
+          path.join(mailPath, `user_${req.user}`),
+          "mail"
+        );
       }
     }
 
@@ -220,24 +228,46 @@ const campagneDelete = async (req, res) => {
     if (!isCampagne)
       return res.json({ success: false, message: "Campagne non trouvé" });
     const isQRCodes = await qrcodes.findAll({ where: { campagneId: id } });
+    const isMails = await mails.findAll({ where: { campagneId: id } });
     const isPage = await pages.findOne({ where: { campagneId: id } });
     const fileHandler = new FileHandler();
+    const userPath = path.join(privatePath, `user_${req.user}`);
 
     if (isQRCodes) {
       isQRCodes.map((qrCode) => {
-        fileHandler.deleteFileFromDatabase(qrCode.qrcode, qrCodePath, "qrcode");
+        fileHandler.deleteFileFromDatabase(
+          qrCode.qrcode,
+          path.join(userPath, "qrcode"),
+          "qrcode"
+        );
       });
       await qrcodes.destroy({ where: { campagneId: id } });
     }
 
+    if (isMails) {
+      isMails.map((mail) => {
+        fileHandler.deleteFileFromDatabase(
+          mail.img,
+          path.join(mailPath, `user_${req.user}`),
+          "mail"
+        );
+      });
+      await mails.destroy({ where: { campagneId: id } });
+    }
+
     if (isPage) {
-      fileHandler.deleteFileFromDatabase(isPage.img, pagePath, "img");
+      fileHandler.deleteFileFromDatabase(
+        isPage.img,
+        path.join(userPath, "page"),
+        "page"
+      );
       await isPage.destroy();
     }
     await logs.create({
       deleteId: id,
       entrepriseId: isCampagne.entrepriseId,
       title: isCampagne.title,
+      userId: req.user,
     });
     await logs.update(
       { title: isCampagne.title, entrepriseId: isCampagne.entrepriseId },

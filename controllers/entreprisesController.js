@@ -1,5 +1,5 @@
 const FileHandler = require("../class/FileHandler");
-const { entreprises } = require("../database/models");
+const { entreprises, stats } = require("../database/models");
 const fileHandler = new FileHandler();
 const path = require("path");
 const getAllCompanies = require("../utils/getAllCompanies");
@@ -112,7 +112,7 @@ const entrepriseUpdate = async (req, res) => {
     const userPath = path.join(privatePath, `user_${req.user}`);
     const imgPath = path.join(userPath, "entreprise");
     const logoPath = path.join(userPath, "logo");
-    
+
     if (
       req.files?.logo &&
       req.files.logo?.length > 0 &&
@@ -133,7 +133,11 @@ const entrepriseUpdate = async (req, res) => {
       req.files.imgCampagne?.length > 0 &&
       req.files.imgCampagne[0].mimetype.split("/")[0] === "image"
     ) {
-      fileHandler.deleteFileFromDatabase(isEntreprise.imgCampagne, imgPath, "entreprise");
+      fileHandler.deleteFileFromDatabase(
+        isEntreprise.imgCampagne,
+        imgPath,
+        "entreprise"
+      );
       imgCampagne = await fileHandler.createImage(
         req.files.imgCampagne,
         imgPath,
@@ -142,6 +146,10 @@ const entrepriseUpdate = async (req, res) => {
       );
       isEntreprise.imgCampagne = imgCampagne;
     }
+    await stats.update(
+      { entreprise: company },
+      { where: { entreprise: isEntreprise.entreprise } }
+    );
     isEntreprise.set({ entreprise: company, fontFamily: fontFamily });
     const result = await isEntreprise.save();
 
