@@ -6,6 +6,7 @@ const {
   pageUpdate,
   pageDelete,
   getSinglePage,
+  pageGetImg,
 } = require("../controllers/pagesController");
 const router = express.Router();
 const multer = require("multer");
@@ -20,5 +21,7 @@ router
 
 router.delete("/delete/:id", verifyJWT, pageDelete);
 router.get("/single-page", getSinglePage);
+
+router.get("/img/:id", pageGetImg);
 
 module.exports = router;

@@ -4,8 +4,6 @@ const path = require("path");
 const getAllPages = require("../utils/getAllPages");
 const { privatePath } = require("./entreprisesController");
 
-// const pagePath = path.join(__dirname, "..", "public", "img");
-
 const pageAdd = async (req, res) => {
   try {
     const { sloganCampagne, titleColor, titleBackgroundColor, campagnes } =
@@ -184,6 +182,7 @@ const getSinglePage = async (req, res) => {
       description: isPage.campagne.description,
       imgCampagne: isPage.img,
       entrepriseId: isPage.campagne.entrepriseId,
+      idData: isPage.id,
     };
 
     res.json({ success: true, data });
@@ -193,4 +192,26 @@ const getSinglePage = async (req, res) => {
   }
 };
 
-module.exports = { pageAdd, pageGetAll, pageUpdate, pageDelete, getSinglePage };
+const pageGetImg = async (req, res) => {
+  try {
+    const { id } = await req.params;
+
+    if (!id) return res.sendStatus(400);
+    const isPage = await pages.findOne({ where: { id: id } });
+
+    if (!isPage) return res.sendStatus(400);
+    res.sendFile(isPage.img, { root: "." });
+  } catch (error) {
+    res.sendStatus(400);
+    console.log("ERROR PAGE GET IMAGE", error);
+  }
+};
+
+module.exports = {
+  pageAdd,
+  pageGetAll,
+  pageUpdate,
+  pageDelete,
+  getSinglePage,
+  pageGetImg,
+};
