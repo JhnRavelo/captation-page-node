@@ -5,12 +5,27 @@ const db = require("../database/models");
 const path = require("path");
 const generateRandomText = require("../utils/generateRandomText");
 const fs = require("fs");
+const { privatePath } = require("./entreprisesController");
 
 const fileHandler = new FileHandler();
 const exportPath = path.join(__dirname, "..", "database", "export");
 const publicPath = path.join(__dirname, "..", "public");
 const importPath = path.join(__dirname, "..", "database", "import");
 const tmpPath = path.join(__dirname, "..", "asset");
+const exportPrivatePath = path.join(
+  __dirname,
+  "..",
+  "database",
+  "export",
+  "private"
+);
+const exportPublicPath = path.join(
+  __dirname,
+  "..",
+  "database",
+  "export",
+  "public"
+);
 
 const exportData = async (req, res) => {
   try {
@@ -38,6 +53,8 @@ const exportData = async (req, res) => {
       tmpPath,
       "tmpApp"
     );
+    await fileHandler.copyFile([], privatePath, exportPrivatePath, req.user);
+    await fileHandler.copyFile([], publicPath, exportPublicPath, req.user);
     const exportFileName = `export.sequelize`;
     const pathExportFile = path.join(exportPath, exportFileName);
     await db.logs.update(
@@ -49,12 +66,12 @@ const exportData = async (req, res) => {
       }
     );
     dbex
-      .export(pathExportFile, { excludes: ["users", "entreprises"] })
+      .export(pathExportFile, { excludes: ["users", "entreprises", "medias"] })
       .then(async (pathFile) => {
         fileHandler.compressZip(
           exportFileName,
           pathFile,
-          publicPath,
+          [exportPrivatePath, exportPublicPath],
           exportPath,
           "export",
           res

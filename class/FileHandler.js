@@ -152,6 +152,61 @@ class FileHandler {
     }
   }
 
+  async copyFile(arrays, filePath, outputPath, user) {
+    const standardPath = filePath.replace(/\\/g, "/");
+    const type = standardPath.split("/")[standardPath.split("/").length - 1];
+
+    try {
+      const readDirs = fs.readdirSync(filePath);
+
+      await Promise.all(
+        readDirs.map(async (folder) => {
+          if (folder === "mail") {
+            const rootPath = path.join(
+              outputPath,
+              type,
+              folder,
+              "user_" + user
+            );
+
+            if (!fs.existsSync(rootPath)) {
+              fs.mkdirSync(rootPath, { recursive: true });
+            }
+            await fsExtra.copy(
+              path.join(filePath, folder, "user_" + user),
+              rootPath
+            );
+          } else {
+            if (user) {
+              const rootPath = path.join(outputPath, type, "user_" + user);
+
+              if (!fs.existsSync(rootPath)) {
+                fs.mkdirSync(rootPath, { recursive: true });
+              }
+              await fsExtra.copy(path.join(filePath, folder), rootPath);
+            } else if (arrays.length > 0) {
+              await Promise.all(
+                arrays.map(async (array) => {
+                  const rootPath = path.join(outputPath, type, folder, array);
+
+                  if (!fs.existsSync(rootPath)) {
+                    fs.mkdirSync(rootPath, { recursive: true });
+                  }
+                  await fsExtra.copy(
+                    path.join(filePath, folder, array),
+                    rootPath
+                  );
+                })
+              );
+            }
+          }
+        })
+      );
+    } catch (error) {
+      console.error("Error while copying files:", error);
+    }
+  }
+
   getFilePath(deleted, dirPath, type) {
     const location =
       deleted.split(type).length > 2
@@ -165,7 +220,7 @@ class FileHandler {
   async compressZip(
     fileName,
     filePath,
-    directory,
+    directories,
     outputPath,
     outputName,
     res
@@ -179,36 +234,60 @@ class FileHandler {
       password: process.env.ZIP_PASSWORD,
     });
     output.on("close", function () {
-      console.log(archive.pointer() + " total bytes");
-      return res.download(output.path);
+      if (res) {
+        const readOutputs = fs.readdirSync(outputPath);
+        readOutputs.forEach(async (file) => {
+          const outputFilePath = path.join(outputPath, file);
+          if (fs.existsSync(outputFilePath) && !file.endsWith(".zip")) {
+            await fsExtra.remove(outputFilePath);
+          }
+        });
+        res.download(output.path);
+        res.on("finish", async () => {
+          try {
+            await fsExtra.remove(output.path);
+            console.log("Fichier effacer: ", output.path);
+          } catch (error) {
+            console.error("Erreur effacement du fichier: " + output.path, error);
+          }
+        });
+      } else return;
     });
     output.on("end", function () {
       console.log("Erreur compression, les données ont été drainé");
-      return res.json({
-        success: false,
-        message: "Erreur compression, les données ont été drainé",
-      });
+      if (res) {
+        return res.json({
+          success: false,
+          message: "Erreur compression, les données ont été drainé",
+        });
+      } else return;
     });
     archive.on("warning", function (err) {
-      console.log(err);
-      return res.json({
-        success: false,
-        message: "Erreur compression, Attention problème de système de fichier",
-      });
+      console.log("Erreur warning", err);
+      if (res) {
+        return res.json({
+          success: false,
+          message:
+            "Erreur compression, Attention problème de système de fichier",
+        });
+      } else return;
     });
     archive.on("error", function (err) {
-      console.log(err);
-      return res.json({ success: false, message: "Erreur compression" });
+      console.log("Erreur compression", err);
+      if (res) {
+        return res.json({ success: false, message: "Erreur compression" });
+      } else return;
     });
     archive.pipe(output);
 
     if (fs.existsSync(filePath)) {
       archive.file(filePath, { name: fileName });
     }
-
-    if (fs.existsSync(directory)) {
-      archive.directory(directory, false);
-    }
+    directories.map((directory) => {
+      if (fs.existsSync(directory)) {
+        archive.directory(directory, false);
+      }
+    });
     archive.finalize();
   }
 
