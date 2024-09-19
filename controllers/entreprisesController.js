@@ -1,9 +1,10 @@
 const FileHandler = require("../class/FileHandler");
-const { entreprises, stats } = require("../database/models");
+const { entreprises, stats, campagnes, logs } = require("../database/models");
 const fileHandler = new FileHandler();
 const path = require("path");
 const getAllCompanies = require("../utils/getAllCompanies");
 const { Op } = require("sequelize");
+const deleteCampagne = require("../utils/deleteCampagne");
 
 const privatePath = path.join(__dirname, "..", "private");
 
@@ -168,11 +169,81 @@ const entrepriseUpdate = async (req, res) => {
 
 const entrepriseDelete = async (req, res) => {
   const { id } = await req.params;
+  try {
+
+    if (!id) {
+      return res.json({
+        success: false,
+        message: "Erreur: aucun identifiant d'entreprise reçu",
+      });
+    }
+    const isEntreprise = await entreprises.findOne({ where: { id } });
+
+    if (!isEntreprise) {
+      return res.json({
+        success: false,
+        message: "Erreur: entreprise non trouvée",
+      });
+    }
+    const isCampagnes = await campagnes.findAll({ where: { entrepriseId: id } });
+
+    if (isCampagnes && isCampagnes.length > 0) {
+      for (const campagne of isCampagnes) {
+        await deleteCampagne(campagne.id, req.user); 
+      }
+    }
+    const userPath = path.join(privatePath, `user_${req.user}`);
+    const imgPath = path.join(userPath, "entreprise");
+    const logoPath = path.join(userPath, "logo");
+
+    if (isEntreprise.logo) {
+      fileHandler.deleteFileFromDatabase(isEntreprise.logo, logoPath, "logo");
+    }
+
+    if (isEntreprise.imgCampagne) {
+      fileHandler.deleteFileFromDatabase(isEntreprise.imgCampagne, imgPath, "entreprise");
+    }
+    await stats.destroy({ where: { entreprise: isEntreprise.entreprise } });
+    const allStats = await stats.findAll({
+      include: [{ model: campagnes, where: { entrepriseId: id } }],
+    });
+
+    if (allStats.length > 0) {
+      for (const stat of allStats) {
+        await stats.destroy({ where: { id: stat.dataValues.id } });
+      }
+    }
+    await logs.destroy({ where: { entrepriseId: id } });
+    const allLogs = await logs.findAll({
+      include: [{ model: campagnes, where: { entrepriseId: id } }],
+    });
+
+    if (allLogs.length > 0) {
+      for (const log of allLogs) {
+        await logs.destroy({ where: { id: log.dataValues.id } });
+      }
+    }
+    const result = await isEntreprise.destroy();
+
+    if (!result) {
+      return res.json({ success: false, message: "Entreprise non supprimée" });
+    }
+    res.json({
+      success: true,
+      message: `Entreprise ${isEntreprise.entreprise} supprimée`,
+    });
+  } catch (error) {
+    console.error("ERROR ENTREPRISE DELETED", error);
+    res.json({
+      success: false,
+      message: "Erreur: suppression entreprise au niveau du serveur",
+    });
+  }
 };
 
 const entrepriseGetImgs = async (req, res) => {
   try {
-    const { idLogo, idImg } = req.params;
+    const { idLogo, idImg } = await req.params;
 
     if (!idImg && !idLogo) return res.sendStatus(401);
 

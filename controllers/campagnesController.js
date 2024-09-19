@@ -2,17 +2,14 @@ const {
   campagnes,
   entreprises,
   logs,
-  qrcodes,
-  pages,
   mails,
-  stats,
 } = require("../database/models");
 const { Op } = require("sequelize");
 const getAllCampagnes = require("../utils/getAllCampagnes");
 const FileHandler = require("../class/FileHandler");
 const path = require("path");
 const getAllMails = require("../utils/getAllMails");
-const { privatePath } = require("./entreprisesController");
+const deleteCampagne = require("../utils/deleteCampagne");
 
 const mailPath = path.join(__dirname, "..", "public", "mail");
 
@@ -220,71 +217,8 @@ const campagneDelete = async (req, res) => {
   const { id } = await req.params;
   try {
     if (!id) return res.json({ success: false, message: "Données non envoyé" });
-    const isCampagne = await campagnes.findOne({
-      where: { id: id },
-      include: [{ model: entreprises }],
-    });
-
-    if (!isCampagne)
-      return res.json({ success: false, message: "Campagne non trouvé" });
-    const isQRCodes = await qrcodes.findAll({ where: { campagneId: id } });
-    const isMails = await mails.findAll({ where: { campagneId: id } });
-    const isPage = await pages.findOne({ where: { campagneId: id } });
-    const fileHandler = new FileHandler();
-    const userPath = path.join(privatePath, `user_${req.user}`);
-
-    if (isQRCodes) {
-      isQRCodes.map((qrCode) => {
-        fileHandler.deleteFileFromDatabase(
-          qrCode.qrcode,
-          path.join(userPath, "qrcode"),
-          "qrcode"
-        );
-      });
-      await qrcodes.destroy({ where: { campagneId: id } });
-    }
-
-    if (isMails) {
-      isMails.map((mail) => {
-        fileHandler.deleteFileFromDatabase(
-          mail.img,
-          path.join(mailPath, `user_${req.user}`),
-          "mail"
-        );
-      });
-      await mails.destroy({ where: { campagneId: id } });
-    }
-
-    if (isPage) {
-      fileHandler.deleteFileFromDatabase(
-        isPage.img,
-        path.join(userPath, "page"),
-        "page"
-      );
-      await isPage.destroy();
-    }
-    await logs.create({
-      deleteId: id,
-      entrepriseId: isCampagne.entrepriseId,
-      title: isCampagne.title,
-      userId: req.user,
-    });
-    await logs.update(
-      { title: isCampagne.title, entrepriseId: isCampagne.entrepriseId },
-      { where: { campagneId: id } }
-    );
-    await stats.update(
-      { title: isCampagne.title, entreprise: isCampagne.entreprise.entreprise },
-      { where: { campagneId: id } }
-    );
-    const result = await isCampagne.destroy();
-
-    if (!result)
-      return res.json({
-        success: false,
-        message: "Erreur de suppression campagne",
-      });
-    res.json({ success: true, message: `Campagne ${id} a été supprimer` });
+    const result = await deleteCampagne(id, req.user);
+    res.json(result);
   } catch (error) {
     res.json({ success: false, message: "Erreur serveur" });
     console.log("ERROR CAMPAGNE DELETE", error);
