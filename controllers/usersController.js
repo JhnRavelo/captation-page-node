@@ -37,7 +37,7 @@ const userLogin = async (req, res) => {
         message: "Utilisateur ou mot de passe non reconnu",
       });
     const id = isEmail.id;
-    const accessToken = users.prototype.generateToken(id);
+    const accessToken = users.prototype.generateToken(id, isEmail.role);
     const refreshToken = users.prototype.generateRefreshToken(id);
     isEmail.refreshToken = refreshToken;
     await isEmail.save();
@@ -120,7 +120,7 @@ const userEditProfile = async (req, res) => {
         success: false,
         message: "Utilisateur non mise à jour",
       });
-    const accessToken = users.prototype.generateToken(isUser.id);
+    const accessToken = users.prototype.generateToken(isUser.id, isUser.role);
     res.json({
       success: true,
       user: {
@@ -170,7 +170,7 @@ const userEditAvatar = async (req, res) => {
         success: false,
         message: "Image de Profile Non Modifier",
       });
-    const accessToken = users.prototype.generateToken(isUser.id);
+    const accessToken = users.prototype.generateToken(isUser.id, isUser.role);
     res.json({
       success: true,
       user: {

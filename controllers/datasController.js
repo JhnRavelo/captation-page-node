@@ -6,6 +6,7 @@ const path = require("path");
 const generateRandomText = require("../utils/generateRandomText");
 const fs = require("fs");
 const { privatePath } = require("./entreprisesController");
+require("dotenv").config();
 
 const fileHandler = new FileHandler();
 const exportPath = path.join(__dirname, "..", "database", "export");
@@ -53,8 +54,19 @@ const exportData = async (req, res) => {
       tmpPath,
       "tmpApp"
     );
-    await fileHandler.copyFile([], privatePath, exportPrivatePath, req.user);
-    await fileHandler.copyFile([], publicPath, exportPublicPath, req.user);
+    await fileHandler.copyFile(
+      ["avatar", "entreprise", "logo"],
+      privatePath,
+      tmpPath
+    );
+
+    if (req.role == process.env.PRIME) {
+      await fileHandler.copyFile([], privatePath, exportPrivatePath);
+      await fileHandler.copyFile([], publicPath, exportPublicPath);
+    } else {
+      await fileHandler.copyFile([], privatePath, exportPrivatePath, req.user);
+      await fileHandler.copyFile([], publicPath, exportPublicPath, req.user);
+    }
     const exportFileName = `export.sequelize`;
     const pathExportFile = path.join(exportPath, exportFileName);
     await db.logs.update(

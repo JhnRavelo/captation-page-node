@@ -10,7 +10,8 @@ const verifyJWT = async (req, res, next) => {
   jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
     
     if (err) return res.sendStatus(403);
-    req.user = decoded.id;
+    req.user = decoded.userInfo.id;
+    req.role = decoded.userInfo.role;
     next();
   });
 };

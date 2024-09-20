@@ -172,10 +172,14 @@ class FileHandler {
             if (!fs.existsSync(rootPath)) {
               fs.mkdirSync(rootPath, { recursive: true });
             }
-            await fsExtra.copy(
-              path.join(filePath, folder, "user_" + user),
-              rootPath
-            );
+
+            if (user) {
+              await fsExtra.copy(path.join(filePath, folder), rootPath);
+            } else
+              await fsExtra.copy(
+                path.join(filePath, folder, "user_" + user),
+                rootPath
+              );
           } else {
             if (user) {
               const rootPath = path.join(outputPath, type, "user_" + user);
@@ -198,6 +202,13 @@ class FileHandler {
                   );
                 })
               );
+            } else {
+              const rootPath = path.join(outputPath, type);
+
+              if (!fs.existsSync(rootPath)) {
+                fs.mkdirSync(rootPath, { recursive: true });
+              }
+              await fsExtra.copy(filePath, rootPath);
             }
           }
         })
@@ -248,7 +259,10 @@ class FileHandler {
             await fsExtra.remove(output.path);
             console.log("Fichier effacer: ", output.path);
           } catch (error) {
-            console.error("Erreur effacement du fichier: " + output.path, error);
+            console.error(
+              "Erreur effacement du fichier: " + output.path,
+              error
+            );
           }
         });
       } else return;

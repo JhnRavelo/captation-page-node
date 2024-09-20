@@ -17,6 +17,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    role: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: process.env.PRIME2,
+    },
     password: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -31,10 +36,13 @@ module.exports = (sequelize, DataTypes) => {
     },
   });
 
-  users.prototype.generateToken = (id) => {
+  users.prototype.generateToken = (id, role) => {
     const accessToken = jwt.sign(
       {
-        id,
+        userInfo: {
+          id,
+          role,
+        },
       },
       process.env.ACCESS_TOKEN,
       {

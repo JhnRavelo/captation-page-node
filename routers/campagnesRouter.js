@@ -10,6 +10,7 @@ const {
   campagneGetMail,
 } = require("../controllers/campagnesController");
 const multer = require("multer");
+const sendEmail = require("../utils/sendEmail");
 
 const memoryStorage = multer({ storage: multer.memoryStorage() });
 
@@ -22,5 +23,14 @@ router
 router.put("/mail", verifyJWT, memoryStorage.any(), campagneUpdateMail);
 router.get("/mail", verifyJWT, campagneGetMail);
 router.delete("/delete/:id", verifyJWT, campagneDelete);
+
+router.get("/send-sms", async (req, res) => {
+  console.log("RUN")
+  const result = await sendEmail();
+
+  if (result) {
+    return res.sendStatus(200);
+  } else return res.sendStatus(400);
+});
 
 module.exports = router;

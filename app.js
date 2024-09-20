@@ -86,7 +86,7 @@ mysql
             const assetPath = path.join(__dirname, "asset");
             const publicPath = path.join(__dirname, "private");
             try {
-              fileHandler.copyFile(["avatar", "entreprise", "logo"], publicPath, assetPath)
+              fileHandler.copyFile(["avatar", "entreprise", "logo"], publicPath, assetPath);
               const users = await db.users.findAll();
               const entreprises = await db.entreprises.findAll();
               const medias = await db.medias.findAll();

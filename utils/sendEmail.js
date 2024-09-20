@@ -24,7 +24,7 @@ module.exports = async (name, to, subject, content, id, title, img, index) => {
         <tr>
           <td align="center">
             <img
-              src="http://europ-alu.com/wp-content/uploads/2024/07/MG_1935.jpg"
+              src="${process.env.SERVER_FRONT_PATH + img}"
               alt="Image"
               style="border: 0; display: block; width: 100%;"
             />
@@ -33,7 +33,7 @@ module.exports = async (name, to, subject, content, id, title, img, index) => {
       </table>
       ${content}
       <img
-        src="http://192.168.123.210:4000/stat/track-open?email=${to}&id=${id}"
+        src="${process.env.SERVER_FRONT_PATH}/stat/track-open?email=${to}&id=${id}"
         alt="Tracking Pixel"
         style="display: none; width: 1px; height: 1px"
       />
