@@ -162,24 +162,20 @@ class FileHandler {
       await Promise.all(
         readDirs.map(async (folder) => {
           if (folder === "mail") {
-            const rootPath = path.join(
-              outputPath,
-              type,
-              folder,
-              "user_" + user
-            );
+            let rootPath = path.join(outputPath, type, folder);
+
+            if (user) rootPath = path.join(rootPath, "user_" + user);
 
             if (!fs.existsSync(rootPath)) {
               fs.mkdirSync(rootPath, { recursive: true });
             }
 
             if (user) {
-              await fsExtra.copy(path.join(filePath, folder), rootPath);
-            } else
               await fsExtra.copy(
                 path.join(filePath, folder, "user_" + user),
                 rootPath
               );
+            } else await fsExtra.copy(path.join(filePath, folder), rootPath);
           } else {
             if (user) {
               const rootPath = path.join(outputPath, type, "user_" + user);
@@ -196,10 +192,15 @@ class FileHandler {
                   if (!fs.existsSync(rootPath)) {
                     fs.mkdirSync(rootPath, { recursive: true });
                   }
-                  await fsExtra.copy(
-                    path.join(filePath, folder, array),
-                    rootPath
-                  );
+
+                  if (user && folder != "user_" + user) {
+                    return;
+                  } else {
+                    await fsExtra.copy(
+                      path.join(filePath, folder, array),
+                      rootPath
+                    );
+                  }
                 })
               );
             } else {

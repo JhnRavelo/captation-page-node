@@ -3,6 +3,8 @@ const db = require("../database/models");
 
 module.exports = (location) => {
   const dbex = new sqEI([
+    db.users,
+    db.entreprises,
     db.medias,
     db.campagnes,
     db.pages,

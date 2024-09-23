@@ -6,6 +6,7 @@ const path = require("path");
 const generateRandomText = require("../utils/generateRandomText");
 const fs = require("fs");
 const { privatePath } = require("./entreprisesController");
+const exportDatabase = require("../utils/exportDatabase");
 require("dotenv").config();
 
 const fileHandler = new FileHandler();
@@ -13,20 +14,8 @@ const exportPath = path.join(__dirname, "..", "database", "export");
 const publicPath = path.join(__dirname, "..", "public");
 const importPath = path.join(__dirname, "..", "database", "import");
 const tmpPath = path.join(__dirname, "..", "asset");
-const exportPrivatePath = path.join(
-  __dirname,
-  "..",
-  "database",
-  "export",
-  "private"
-);
-const exportPublicPath = path.join(
-  __dirname,
-  "..",
-  "database",
-  "export",
-  "public"
-);
+const exportPrivatePath = path.join(exportPath, "private");
+const exportPublicPath = path.join(exportPath, "public");
 
 const exportData = async (req, res) => {
   try {
@@ -61,8 +50,8 @@ const exportData = async (req, res) => {
     );
 
     if (req.role == process.env.PRIME) {
-      await fileHandler.copyFile([], privatePath, exportPrivatePath);
       await fileHandler.copyFile([], publicPath, exportPublicPath);
+      await fileHandler.copyFile([], privatePath, exportPrivatePath);
     } else {
       await fileHandler.copyFile([], privatePath, exportPrivatePath, req.user);
       await fileHandler.copyFile([], publicPath, exportPublicPath, req.user);
@@ -77,25 +66,49 @@ const exportData = async (req, res) => {
         },
       }
     );
-    dbex
-      .export(pathExportFile, { excludes: ["users", "entreprises", "medias"] })
-      .then(async (pathFile) => {
-        fileHandler.compressZip(
-          exportFileName,
-          pathFile,
-          [exportPrivatePath, exportPublicPath],
-          exportPath,
-          "export",
-          res
-        );
-      })
-      .catch((err) => {
-        res.json({
-          success: false,
-          message: "Erreur dans l'exportation dans le sequelize",
+
+    if (req.role == process.env.PRIME) {
+      dbex
+        .export(pathExportFile)
+        .then(async (pathFile) => {
+          fileHandler.compressZip(
+            exportFileName,
+            pathFile,
+            [exportPrivatePath, exportPublicPath],
+            exportPath,
+            "export",
+            res
+          );
+        })
+        .catch((err) => {
+          res.json({
+            success: false,
+            message: "Erreur dans l'exportation dans le sequelize",
+          });
+          console.log("ERROR EXPORT SEQUELIZE", err);
         });
-        console.log("ERROR EXPORT SEQUELIZE", err);
-      });
+    } else {
+      const data = await exportDatabase(
+        ["medias"],
+        req.user
+      );
+      const dataStringInFile = generateDataJWT(data);
+      const { location } = fileHandler.createFile(
+        "export",
+        dataStringInFile,
+        "sequelize",
+        exportPath,
+        "tmpApp"
+      );
+      fileHandler.compressZip(
+        exportFileName,
+        location,
+        [exportPrivatePath, exportPublicPath],
+        exportPath,
+        "export",
+        res
+      );
+    }
   } catch (error) {
     console.log("ERROR EXPORT DATABASE", error);
     res.json({
