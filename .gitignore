@@ -5,6 +5,8 @@ controllers/refreshController.js
 routers/refreshRouter.js
 public
 private
+public.7z
+private.7z
 merge.env.txt
 separate.env.txt
 cryptoRandom.js

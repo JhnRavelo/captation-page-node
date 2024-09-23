@@ -4,15 +4,11 @@ const sharp = require("sharp");
 const fsExtra = require("fs-extra");
 const AdmZip = require("adm-zip");
 const archiver = require("archiver");
-const util = require("util");
 require("dotenv").config();
 const importFileToDatabase = require("../utils/importFileToDatabase");
 const generateDataJWT = require("../utils/generateDataJWT");
 const generateRandomText = require("../utils/generateRandomText");
 const createDataViaTmpFile = require("../utils/createDataViaTmpFile");
-
-const readdir = util.promisify(fs.readdir);
-const unlink = util.promisify(fs.unlink);
 
 let zipEncryptedRegistered = false;
 
@@ -32,6 +28,7 @@ class FileHandler {
   constructor() {
     const date = new Date();
     this.dateArray = [date.getFullYear(), date.getMonth() + 1, date.getDate()];
+    this.privatePath = path.join(__dirname, "..", "private");
   }
 
   getDate() {
@@ -173,9 +170,13 @@ class FileHandler {
             if (user) {
               await fsExtra.copy(
                 path.join(filePath, folder, "user_" + user),
-                rootPath
+                rootPath,
+                { overwrite: true }
               );
-            } else await fsExtra.copy(path.join(filePath, folder), rootPath);
+            } else
+              await fsExtra.copy(path.join(filePath, folder), rootPath, {
+                overwrite: true,
+              });
           } else {
             if (user) {
               const rootPath = path.join(outputPath, type, "user_" + user);
@@ -183,7 +184,9 @@ class FileHandler {
               if (!fs.existsSync(rootPath)) {
                 fs.mkdirSync(rootPath, { recursive: true });
               }
-              await fsExtra.copy(path.join(filePath, folder), rootPath);
+              await fsExtra.copy(path.join(filePath, folder), rootPath, {
+                overwrite: true,
+              });
             } else if (arrays.length > 0) {
               await Promise.all(
                 arrays.map(async (array) => {
@@ -198,7 +201,8 @@ class FileHandler {
                   } else {
                     await fsExtra.copy(
                       path.join(filePath, folder, array),
-                      rootPath
+                      rootPath,
+                      { overwrite: true }
                     );
                   }
                 })
@@ -209,7 +213,7 @@ class FileHandler {
               if (!fs.existsSync(rootPath)) {
                 fs.mkdirSync(rootPath, { recursive: true });
               }
-              await fsExtra.copy(filePath, rootPath);
+              await fsExtra.copy(filePath, rootPath, { overwrite: true });
             }
           }
         })
@@ -217,6 +221,31 @@ class FileHandler {
     } catch (error) {
       console.error("Error while copying files:", error);
     }
+  }
+
+  async removeDirectories(arrays, filePath) {
+    const readDirs = fs.readdirSync(filePath);
+
+    await Promise.all(
+      readDirs.map(async (folder) => {
+        if (arrays.length > 0) {
+          await Promise.all(
+            arrays.map(async (array) => {
+              const removedDir = path.join(filePath, folder, array);
+
+              if (fs.existsSync(removedDir)) {
+                await fsExtra.remove(removedDir);
+              }
+            })
+          );
+        } else {
+          const removedDir = path.join(filePath, folder);
+          if (fs.existsSync(removedDir)) {
+            await fsExtra.remove(removedDir);
+          }
+        }
+      })
+    );
   }
 
   getFilePath(deleted, dirPath, type) {
@@ -347,7 +376,7 @@ class FileHandler {
             if (fs.existsSync(assetDIr)) {
               await fsExtra.remove(assetDIr);
             }
-            await fsExtra.copy(filePath, assetDIr);
+            await fsExtra.copy(filePath, assetDIr, { overwrite: true });
           }
           return result;
         })
@@ -374,11 +403,7 @@ class FileHandler {
     try {
       if (data) {
         const stringDataUser = generateDataJWT(data);
-        const files = await readdir(filePath);
-        const tempFile = files.find((item) => item.includes(".tmp"));
-        if (tempFile) {
-          await unlink(path.join(filePath, tempFile));
-        }
+        await this.removeDirectories([], filePath);
         const { location } = this.createFile(
           generateRandomText(10),
           stringDataUser,
@@ -386,12 +411,26 @@ class FileHandler {
           filePath,
           "tmpApp"
         );
+        await this.copyFile(
+          ["avatar", "entreprise", "logo"],
+          this.privatePath,
+          filePath
+        );
         if (!location) {
           console.log("ERROR CREATE FILE");
           return;
         }
       } else {
-        const files = await readdir(filePath);
+        await this.removeDirectories(
+          ["avatar", "entreprise", "logo"],
+          this.privatePath
+        );
+        await this.copyFile(
+          [],
+          path.join(filePath, "private"),
+          path.join(__dirname, "..")
+        );
+        const files = fs.readdirSync(filePath);
         const tempFile = files.find((item) => item.includes(".tmp"));
         if (tempFile) {
           await createDataViaTmpFile(path.join(filePath, tempFile));
