@@ -4,7 +4,6 @@ const sqEI = require("../database/sequelize-import-export");
 const db = require("../database/models");
 const path = require("path");
 const generateRandomText = require("../utils/generateRandomText");
-const fs = require("fs");
 const { privatePath } = require("./entreprisesController");
 const exportDatabase = require("../utils/exportDatabase");
 require("dotenv").config();
@@ -24,18 +23,7 @@ const exportData = async (req, res) => {
     const entreprises = await db.entreprises.findAll();
     const medias = await db.medias.findAll();
     const dataStringInFile = generateDataJWT({ users, entreprises, medias });
-    const tmpFileName = fs.readdirSync(tmpPath);
-
-    if (tmpFileName && tmpFileName?.length > 0) {
-      tmpFileName.map((file) => {
-        if (
-          fs.existsSync(path.join(tmpPath, file)) &&
-          file.split(".")[file.split(".").length - 1] == "tmp"
-        ) {
-          fs.unlinkSync(path.join(tmpPath, file));
-        }
-      });
-    }
+    await fileHandler.removeDirectories([], tmpPath);
     fileHandler.createFile(
       generateRandomText(10),
       dataStringInFile,
@@ -89,7 +77,16 @@ const exportData = async (req, res) => {
         });
     } else {
       const data = await exportDatabase(
-        ["medias"],
+        [
+          "users",
+          "entreprises",
+          "campagnes",
+          "pages",
+          "qrcodes",
+          "logs",
+          "mails",
+          "stats",
+        ],
         req.user
       );
       const dataStringInFile = generateDataJWT(data);

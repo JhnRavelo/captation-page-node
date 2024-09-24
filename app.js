@@ -84,13 +84,23 @@ mysql
             }
 
             const assetPath = path.join(__dirname, "asset");
-            const publicPath = path.join(__dirname, "private");
+            const privatePath = path.join(__dirname, "private");
             try {
-              fileHandler.copyFile(["avatar", "entreprise", "logo"], publicPath, assetPath);
               const users = await db.users.findAll();
               const entreprises = await db.entreprises.findAll();
               const medias = await db.medias.findAll();
-              await fileHandler.generateData({ users, entreprises, medias }, assetPath);
+              if (entreprises?.length > 0 && users?.length > 0) {
+                await fileHandler.removeDirectories([], assetPath);
+                await fileHandler.copyFile(
+                  ["avatar", "entreprise", "logo"],
+                  privatePath,
+                  assetPath
+                );
+              }
+              await fileHandler.generateData(
+                users?.length > 0 ? { users, entreprises, medias } : undefined,
+                assetPath
+              );
             } catch (error) {
               console.log("ERROR USER CREATE", error);
             }
