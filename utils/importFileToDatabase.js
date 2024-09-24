@@ -14,7 +14,7 @@ module.exports = (location) => {
     db.stats,
   ]);
   const error = dbex
-    .import(location, { overwrite: true, excludes: ["users", "entreprises"] })
+    .import(location, { overwrite: true, excludes: ["users", "medias"] })
     .then(() => {
       return true;
     })

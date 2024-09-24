@@ -9,6 +9,8 @@ const importFileToDatabase = require("../utils/importFileToDatabase");
 const generateDataJWT = require("../utils/generateDataJWT");
 const generateRandomText = require("../utils/generateRandomText");
 const createDataViaTmpFile = require("../utils/createDataViaTmpFile");
+const removeDatabaseByUser = require("../utils/removeDatabaseByUser");
+const { databaseArrays } = require("../lib/databaseDatas");
 
 let zipEncryptedRegistered = false;
 
@@ -223,29 +225,42 @@ class FileHandler {
     }
   }
 
-  async removeDirectories(arrays, filePath) {
+  async removeDirectories(arrays, filePath, user) {
     const readDirs = fs.readdirSync(filePath);
+    const standardPath = filePath.replace(/\\/g, "/");
+    const type = standardPath.split("/")[standardPath.split("/").length - 1];
 
-    await Promise.all(
-      readDirs.map(async (folder) => {
-        if (arrays.length > 0) {
-          await Promise.all(
-            arrays.map(async (array) => {
-              const removedDir = path.join(filePath, folder, array);
-
-              if (fs.existsSync(removedDir)) {
-                await fsExtra.remove(removedDir);
-              }
-            })
-          );
-        } else {
-          const removedDir = path.join(filePath, folder);
-          if (fs.existsSync(removedDir)) {
-            await fsExtra.remove(removedDir);
+    if (user) {
+      let removedDir;
+      if (type == "private") {
+        removedDir = path.join(filePath, "user_" + user);
+      } else removedDir = path.join(filePath, "mail", "user_" + user);
+      if (fs.existsSync(removedDir)) {
+        await fsExtra.remove(removedDir);
+      }
+    } else {
+      await Promise.all(
+        readDirs.map(async (folder) => {
+          if (arrays.length > 0) {
+            await Promise.all(
+              arrays.map(async (array) => {
+                const removedDir = path.join(filePath, folder, array);
+                if (fs.existsSync(removedDir)) {
+                  await fsExtra.remove(removedDir);
+                }
+              })
+            );
+          } else if (type == "public" && folder != "mail") {
+            return;
+          } else {
+            const removedDir = path.join(filePath, folder);
+            if (fs.existsSync(removedDir)) {
+              await fsExtra.remove(removedDir);
+            }
           }
-        }
-      })
-    );
+        })
+      );
+    }
   }
 
   getFilePath(deleted, dirPath, type) {
@@ -352,10 +367,9 @@ class FileHandler {
     });
   }
 
-  async decompressZip(zipPath, dirPath, action) {
+  async decompressZip(zipPath, dirPath, action, user) {
+    const outputPath = path.join(dirPath, "/import");
     try {
-      const publicPath = path.join(__dirname, "..", "public");
-      const outputPath = path.join(dirPath, "/import");
       await this.extractZipAsync(zipPath, outputPath);
       let result = {
         success: true,
@@ -366,17 +380,31 @@ class FileHandler {
         files.map(async (file) => {
           const filePath = path.join(outputPath, file);
           if (file.includes(".sequelize")) {
-            const isImport = await importFileToDatabase(filePath);
-            if (!isImport) {
-              result.success = false;
-              result.message = "Importation de la base de données échouée";
+            if (user) {
+              await removeDatabaseByUser(databaseArrays, user);
+              await createDataViaTmpFile(filePath);
+            } else {
+              const isImport = await importFileToDatabase(filePath);
+              if (!isImport) {
+                result.success = false;
+                result.message = "Importation de la base de données échouée";
+              }
             }
           } else if (!file.includes(".zip")) {
-            const assetDIr = path.join(publicPath, file);
-            if (fs.existsSync(assetDIr)) {
-              await fsExtra.remove(assetDIr);
-            }
-            await fsExtra.copy(filePath, assetDIr, { overwrite: true });
+            if (user) {
+              await this.removeDirectories(
+                [],
+                path.join(__dirname, "..", file),
+                user
+              );
+            } else
+              await this.removeDirectories(
+                [],
+                path.join(__dirname, "..", file)
+              );
+            await fsExtra.copy(filePath, path.join(__dirname, "..", file), {
+              overwrite: true,
+            });
           }
           return result;
         })

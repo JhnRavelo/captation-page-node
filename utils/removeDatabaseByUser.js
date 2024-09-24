@@ -1,7 +1,6 @@
 const db = require("../database/models");
 
 module.exports = async (tables, user) => {
-  let data = {};
   await Promise.all(
     tables.map(async (table) => {
       if (
@@ -10,15 +9,11 @@ module.exports = async (tables, user) => {
         table == "stats" ||
         table == "entreprises"
       ) {
-        const datas = await db[table].findAll({
+        await db[table].destroy({
           where: { userId: user },
         });
-        data = { ...data, [table]: datas };
       } else if (table == "users") {
-        const datas = await db[table].findAll({
-          where: { id: user },
-        });
-        data = { ...data, [table]: datas };
+        return;
       } else {
         const datas = await db[table].findAll({
           include: [
@@ -26,9 +21,14 @@ module.exports = async (tables, user) => {
           ],
           raw: true,
         });
-        data = { ...data, [table]: datas };
+        await Promise.all(
+          datas.map(async (data) => {
+            db[table].destroy({
+              where: { id: data.id },
+            });
+          })
+        );
       }
     })
   );
-  return data;
 };

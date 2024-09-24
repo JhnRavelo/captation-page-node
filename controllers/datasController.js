@@ -6,6 +6,7 @@ const path = require("path");
 const generateRandomText = require("../utils/generateRandomText");
 const { privatePath } = require("./entreprisesController");
 const exportDatabase = require("../utils/exportDatabase");
+const { databaseArrays } = require("../lib/databaseDatas");
 require("dotenv").config();
 
 const fileHandler = new FileHandler();
@@ -76,19 +77,7 @@ const exportData = async (req, res) => {
           console.log("ERROR EXPORT SEQUELIZE", err);
         });
     } else {
-      const data = await exportDatabase(
-        [
-          "users",
-          "entreprises",
-          "campagnes",
-          "pages",
-          "qrcodes",
-          "logs",
-          "mails",
-          "stats",
-        ],
-        req.user
-      );
+      const data = await exportDatabase(databaseArrays, req.user);
       const dataStringInFile = generateDataJWT(data);
       const { location } = fileHandler.createFile(
         "export",
@@ -132,7 +121,16 @@ const importData = async (req, res) => {
       importPath,
       "tmpApp"
     );
-    const result = await fileHandler.decompressZip(location, fileDir, "import");
+    let result;
+    if (req.role == process.env.PRIME) {
+      result = await fileHandler.decompressZip(location, fileDir, "import");
+    } else
+      result = await fileHandler.decompressZip(
+        location,
+        fileDir,
+        "import",
+        req.user
+      );
     res.json(result);
   } catch (error) {
     console.log("ERROR IMPORT DATABASE", error);
