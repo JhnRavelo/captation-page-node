@@ -61,15 +61,18 @@ mysql
 
                         if (differenceCampagne >= 0) {
                           setTimeout(async () => {
+                            const content = getContentEmailForClient(
+                              campagneMail.title,
+                              campagneMail.img,
+                              mail.userMail,
+                              campagneMail.campagneId,
+                              campagneMail.mailText
+                            );
                             await sendEmail(
                               campagneMail.campagne.entreprise.entreprise,
                               mail.userMail,
                               campagneMail.object,
-                              campagneMail.mailText,
-                              campagneMail.campagneId,
-                              campagneMail.title,
-                              campagneMail.img,
-                              index
+                              content,
                             );
                           }, differenceCampagne);
                         }
@@ -146,6 +149,7 @@ const logsRouter = require("./routers/logsRouter");
 app.use("/log", logsRouter);
 
 const datasRouter = require("./routers/datasRouter");
+const getContentEmailForClient = require("./utils/getContentEmailForClient");
 app.use("/data", datasRouter);
 
 app.use((req, res, next) => {

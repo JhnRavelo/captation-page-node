@@ -9,6 +9,7 @@ const {
 const sequelize = require("sequelize");
 const { Op } = require("sequelize");
 const sendEmail = require("../utils/sendEmail");
+const getContentEmailForClient = require("../utils/getContentEmailForClient");
 
 const statAdd = async (req, res) => {
   const { idCampagne, media } = await req.body;
@@ -73,15 +74,12 @@ const statAddEmail = async (req, res) => {
       return res.json({ success: false });
     isCampagnes.map((mail, index) => {
       setTimeout(async () => {
+        const content = getContentEmailForClient(mail.title, mail.img, email, idCampagne, mail.mailText);
         await sendEmail(
           mail.campagne.entreprise.entreprise,
           email,
           mail.object,
-          mail.mailText,
-          idCampagne,
-          mail.title,
-          mail.img,
-          index
+          content,
         );
       }, mail.delay * 24 * 60 * 60 * 1000);
     });

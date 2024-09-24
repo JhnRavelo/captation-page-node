@@ -206,7 +206,9 @@ const userPasswordForget = async (req, res) => {
       });
     const subject =
       "Réinitialisation de Mot de Passe : Votre Nouvel Accès Sécurisé";
-    const content = `<p style="font-family: 'Lato', sans-serif;">
+    const content = `<html>
+    <body style="margin: 0; padding: 0; font-family: 'Lato', sans-serif !important;">
+    <p style="font-family: 'Lato', sans-serif;">
       Cher Utilisateur,<br /> <br />
 
       Nous avons reçu une demande de réinitialisation de votre mot de passe.
@@ -237,10 +239,12 @@ const userPasswordForget = async (req, res) => {
       Cordialement, <br /> <br />
 
       L'Équipe de Support
-    </p>`;
+    </p>
+    </body>
+  </html>`;
     userMail.password = await bcrypt.hash(process.env.PASSWORD_RESET, 10);
     await userMail.save();
-    sendEmail("Europ'Alu", email, subject, content);
+    sendEmail("Alpha", email, subject, content);
     res.json({ success: true, message: "Nous vous avons envoyer un email" });
   } catch (error) {
     res.json({ success: false, message: "Erreur serveur mot de passe" });
