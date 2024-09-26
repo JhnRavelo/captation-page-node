@@ -182,7 +182,7 @@ const qrCodeGetImg = async (req, res) => {
     if (!id) return res.sendStatus(400);
     const isQRCode = await qrcodes.findOne({ where: { id: id } });
 
-    if (!isQRCode) return res.sendStatus(400);
+    if (!isQRCode || !isQRCode?.qrcode) return res.sendStatus(400);
     res.sendFile(isQRCode.qrcode, { root: "." });
   } catch (error) {
     res.sendStatus(400);

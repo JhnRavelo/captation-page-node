@@ -199,7 +199,7 @@ const pageGetImg = async (req, res) => {
     if (!id) return res.sendStatus(400);
     const isPage = await pages.findOne({ where: { id: id } });
 
-    if (!isPage) return res.sendStatus(400);
+    if (!isPage && !isPage?.img) return res.sendStatus(400);
     res.sendFile(isPage.img, { root: "." });
   } catch (error) {
     res.sendStatus(400);

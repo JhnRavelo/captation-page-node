@@ -259,7 +259,7 @@ const userGetImg = async (req, res) => {
     if (!id) return res.sendStatus(400);
     const isUser = await users.findOne({ where: { id: id } });
 
-    if (!isUser) return res.sendStatus(400);
+    if (!isUser && !isUser?.avatar) return res.sendStatus(400);
     res.sendFile(isUser.avatar, { root: "." });
   } catch (error) {
     res.sendStatus(400);

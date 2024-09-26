@@ -252,14 +252,14 @@ const entrepriseGetImgs = async (req, res) => {
         where: { id: idLogo },
       });
 
-      if (!isEntreprise) return res.sendStatus(401);
+      if (!isEntreprise && !isEntreprise?.logo) return res.sendStatus(401);
       res.sendFile(isEntreprise.logo, { root: "." });
     } else if (idImg) {
       const isEntreprise = await entreprises.findOne({
         where: { id: idImg },
       });
 
-      if (!isEntreprise) return res.sendStatus(401);
+      if (!isEntreprise && !isEntreprise?.imgCampagne) return res.sendStatus(401);
       res.sendFile(isEntreprise.imgCampagne, { root: "." });
     }
   } catch (error) {
