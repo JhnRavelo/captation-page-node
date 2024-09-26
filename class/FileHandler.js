@@ -159,66 +159,68 @@ class FileHandler {
       const readDirs = fs.readdirSync(filePath);
 
       await Promise.all(
-        readDirs.map(async (folder) => {
-          if (folder === "mail") {
-            let rootPath = path.join(outputPath, type, folder);
+        readDirs
+          .filter((folder) => folder != "index.html" && folder != "assets")
+          .map(async (folder) => {
+            if (folder === "mail") {
+              let rootPath = path.join(outputPath, type, folder);
 
-            if (user) rootPath = path.join(rootPath, "user_" + user);
-
-            if (!fs.existsSync(rootPath)) {
-              fs.mkdirSync(rootPath, { recursive: true });
-            }
-
-            if (user) {
-              await fsExtra.copy(
-                path.join(filePath, folder, "user_" + user),
-                rootPath,
-                { overwrite: true }
-              );
-            } else
-              await fsExtra.copy(path.join(filePath, folder), rootPath, {
-                overwrite: true,
-              });
-          } else {
-            if (user) {
-              const rootPath = path.join(outputPath, type, "user_" + user);
+              if (user) rootPath = path.join(rootPath, "user_" + user);
 
               if (!fs.existsSync(rootPath)) {
                 fs.mkdirSync(rootPath, { recursive: true });
               }
-              await fsExtra.copy(path.join(filePath, folder), rootPath, {
-                overwrite: true,
-              });
-            } else if (arrays.length > 0) {
-              await Promise.all(
-                arrays.map(async (array) => {
-                  const rootPath = path.join(outputPath, type, folder, array);
 
-                  if (!fs.existsSync(rootPath)) {
-                    fs.mkdirSync(rootPath, { recursive: true });
-                  }
-
-                  if (user && folder != "user_" + user) {
-                    return;
-                  } else {
-                    await fsExtra.copy(
-                      path.join(filePath, folder, array),
-                      rootPath,
-                      { overwrite: true }
-                    );
-                  }
-                })
-              );
+              if (user) {
+                await fsExtra.copy(
+                  path.join(filePath, folder, "user_" + user),
+                  rootPath,
+                  { overwrite: true }
+                );
+              } else
+                await fsExtra.copy(path.join(filePath, folder), rootPath, {
+                  overwrite: true,
+                });
             } else {
-              const rootPath = path.join(outputPath, type);
+              if (user) {
+                const rootPath = path.join(outputPath, type, "user_" + user);
 
-              if (!fs.existsSync(rootPath)) {
-                fs.mkdirSync(rootPath, { recursive: true });
+                if (!fs.existsSync(rootPath)) {
+                  fs.mkdirSync(rootPath, { recursive: true });
+                }
+                await fsExtra.copy(path.join(filePath, folder), rootPath, {
+                  overwrite: true,
+                });
+              } else if (arrays.length > 0) {
+                await Promise.all(
+                  arrays.map(async (array) => {
+                    const rootPath = path.join(outputPath, type, folder, array);
+
+                    if (!fs.existsSync(rootPath)) {
+                      fs.mkdirSync(rootPath, { recursive: true });
+                    }
+
+                    if (user && folder != "user_" + user) {
+                      return;
+                    } else {
+                      await fsExtra.copy(
+                        path.join(filePath, folder, array),
+                        rootPath,
+                        { overwrite: true }
+                      );
+                    }
+                  })
+                );
+              } else {
+                const rootPath = path.join(outputPath, type);
+
+                if (!fs.existsSync(rootPath)) {
+                  fs.mkdirSync(rootPath, { recursive: true });
+                }
+                await fsExtra.copy(filePath, rootPath, { overwrite: true });
               }
-              await fsExtra.copy(filePath, rootPath, { overwrite: true });
             }
-          }
-        })
+          })
       );
     } catch (error) {
       console.error("Error while copying files:", error);
