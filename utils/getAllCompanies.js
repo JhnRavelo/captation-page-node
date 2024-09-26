@@ -12,6 +12,7 @@ module.exports = async (id) => {
       idData: value.id,
       company: value.entreprise,
       fontFamily: value.fontFamily,
+      facebook: value.facebook,
     };
   });
 

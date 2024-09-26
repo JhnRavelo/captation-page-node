@@ -30,17 +30,18 @@ const entrepriseGetAll = async (req, res) => {
 
 const entrepriseAdd = async (req, res) => {
   try {
-    const { company, fontFamily } = await req.body;
+    const { company, fontFamily, facebook } = await req.body;
 
     if (
-      req.files.length == 0 ||
-      (req.files.logo.length > 0 &&
-        req.files.logo[0].mimetype.split("/")[0] != "image") ||
-      (req.files.imgCampagne.length > 0 &&
-        req.files.imgCampagne[0].mimetype.split("/")[0] != "image") ||
+      req?.files?.length == 0 ||
+      (req?.files?.logo?.length > 0 &&
+        req?.files?.logo[0].mimetype.split("/")[0] != "image") ||
+      (req?.files?.imgCampagne?.length > 0 &&
+        req?.files?.imgCampagne[0].mimetype.split("/")[0] != "image") ||
       !req.user ||
       !company ||
-      !fontFamily
+      !fontFamily ||
+      !facebook
     )
       return res.json({ success: false, message: "Données non trouvés" });
     const isEntreprise = await entreprises.findOne({
@@ -69,6 +70,7 @@ const entrepriseAdd = async (req, res) => {
       logo,
       imgCampagne,
       fontFamily,
+      facebook,
     });
 
     if (!result)
@@ -95,10 +97,10 @@ const entrepriseAdd = async (req, res) => {
 
 const entrepriseUpdate = async (req, res) => {
   try {
-    const { company, fontFamily, id } = await req.body;
+    const { company, fontFamily, id, facebook } = await req.body;
     let logo, imgCampagne;
 
-    if (!company || !fontFamily || !id)
+    if (!company || !fontFamily || !id || !facebook)
       return res.json({
         success: false,
         message: "Erreur non données envoyés pour mettre à jour entreprise",
@@ -117,7 +119,7 @@ const entrepriseUpdate = async (req, res) => {
     if (
       req.files?.logo &&
       req.files.logo?.length > 0 &&
-      req.files.logo[0].mimetype.split("/")[0] === "image"
+      req.files.logo[0]?.mimetype.split("/")[0] === "image"
     ) {
       fileHandler.deleteFileFromDatabase(isEntreprise.logo, logoPath, "logo");
       logo = await fileHandler.createImage(
@@ -132,7 +134,7 @@ const entrepriseUpdate = async (req, res) => {
     if (
       req.files?.imgCampagne &&
       req.files.imgCampagne?.length > 0 &&
-      req.files.imgCampagne[0].mimetype.split("/")[0] === "image"
+      req.files.imgCampagne[0]?.mimetype.split("/")[0] === "image"
     ) {
       fileHandler.deleteFileFromDatabase(
         isEntreprise.imgCampagne,
@@ -151,7 +153,11 @@ const entrepriseUpdate = async (req, res) => {
       { entreprise: company },
       { where: { entreprise: isEntreprise.entreprise } }
     );
-    isEntreprise.set({ entreprise: company, fontFamily: fontFamily });
+    isEntreprise.set({
+      entreprise: company,
+      fontFamily,
+      facebook,
+    });
     const result = await isEntreprise.save();
 
     if (!result)
@@ -170,7 +176,6 @@ const entrepriseUpdate = async (req, res) => {
 const entrepriseDelete = async (req, res) => {
   const { id } = await req.params;
   try {
-
     if (!id) {
       return res.json({
         success: false,
@@ -185,11 +190,13 @@ const entrepriseDelete = async (req, res) => {
         message: "Erreur: entreprise non trouvée",
       });
     }
-    const isCampagnes = await campagnes.findAll({ where: { entrepriseId: id } });
+    const isCampagnes = await campagnes.findAll({
+      where: { entrepriseId: id },
+    });
 
     if (isCampagnes && isCampagnes.length > 0) {
       for (const campagne of isCampagnes) {
-        await deleteCampagne(campagne.id, req.user); 
+        await deleteCampagne(campagne.id, req.user);
       }
     }
     const userPath = path.join(privatePath, `user_${req.user}`);
@@ -201,7 +208,11 @@ const entrepriseDelete = async (req, res) => {
     }
 
     if (isEntreprise.imgCampagne) {
-      fileHandler.deleteFileFromDatabase(isEntreprise.imgCampagne, imgPath, "entreprise");
+      fileHandler.deleteFileFromDatabase(
+        isEntreprise.imgCampagne,
+        imgPath,
+        "entreprise"
+      );
     }
     await stats.destroy({ where: { entreprise: isEntreprise.entreprise } });
     const allStats = await stats.findAll({
@@ -259,7 +270,8 @@ const entrepriseGetImgs = async (req, res) => {
         where: { id: idImg },
       });
 
-      if (!isEntreprise && !isEntreprise?.imgCampagne) return res.sendStatus(401);
+      if (!isEntreprise && !isEntreprise?.imgCampagne)
+        return res.sendStatus(401);
       res.sendFile(isEntreprise.imgCampagne, { root: "." });
     }
   } catch (error) {

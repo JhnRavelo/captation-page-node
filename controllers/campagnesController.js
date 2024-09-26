@@ -1,9 +1,4 @@
-const {
-  campagnes,
-  entreprises,
-  logs,
-  mails,
-} = require("../database/models");
+const { campagnes, entreprises, logs, mails } = require("../database/models");
 const { Op } = require("sequelize");
 const getAllCampagnes = require("../utils/getAllCampagnes");
 const FileHandler = require("../class/FileHandler");
@@ -27,7 +22,7 @@ const campagneAdd = async (req, res) => {
 
     if (!isEntreprise)
       return res.json({ success: false, message: "Entreprise non trouvé" });
-    const nameTitle = title.trim().slice(0, 8).toUpperCase();
+    const nameTitle = title.trim().replace(" ", "_").slice(0, 8).toUpperCase();
     const isCampagnes = await campagnes.findAll({
       where: {
         id: {
