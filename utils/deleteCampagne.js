@@ -65,10 +65,7 @@ module.exports = async (id, user) => {
     { title: isCampagne.title, entrepriseId: isCampagne.entrepriseId },
     { where: { campagneId: id } }
   );
-  await stats.update(
-    { title: isCampagne.title, entreprise: isCampagne.entreprise.entreprise },
-    { where: { campagneId: id } }
-  );
+  await stats.destroy({ where: { campagneId: id } });
   const result = await isCampagne.destroy();
 
   if (!result)

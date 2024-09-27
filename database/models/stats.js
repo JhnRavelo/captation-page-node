@@ -11,10 +11,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-    entreprise: {
-      allowNull: true,
-      type: DataTypes.STRING,
-    },
   });
 
   stats.associate = (models) => {
