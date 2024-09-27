@@ -182,6 +182,7 @@ const getSinglePage = async (req, res) => {
       description: isPage.campagne.description,
       imgCampagne: isPage.img,
       entrepriseId: isPage.campagne.entrepriseId,
+      facebook: isPage.campagne.entreprise.facebook,
       idData: isPage.id,
     };
 
